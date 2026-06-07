@@ -38,7 +38,7 @@ local Library = {
     Flags = { },
     MenuKeybind = tostring(Enum.KeyCode.X), -- has to be a string
 
-    Directory = "juanitaaaaaaa",
+    Directory = "iveraprivate",
     Folders = {
         Assets = "/Assets",
         Configs = "/Configs",
@@ -2594,7 +2594,7 @@ local Library = {
                     Parent = Library.Holder.Instance,
                     AnchorPoint = Vector2.new(0.5, 0.5),
                     Position = UDim2.new(0.5, 0, 0.5, 0),
-                    Size = UDim2.new(0, 613, 0, 453),
+                    Size = UDim2.new(0, 750, 0, 550),
                     BorderSizePixel = 0,
                     BackgroundColor3 = Library.Theme["Border"]
                 }):AddToTheme({BackgroundColor3 = 'Border'})
@@ -2744,46 +2744,37 @@ local Library = {
                 end
             end)
 
-            -- the title animation logic below
-            local OffsetX = 8
-            local OffsetY = 12
-            local Width = 7 -- this would be the gap between each letter
+            -- Typewriter effect for title
+            local TypewriterLabel = Library:Create("TextLabel",{
+                Name = "\0",
+                Size = UDim2.new(0, 0, 0, 0),
+                Position = UDim2.new(0, 8, 0, 12),
+                BackgroundTransparency = 1,
+                BorderSizePixel = 0,
+                Text = "",
+                FontFace = Library.Font,
+                TextSize = Library.FontSize,
+                TextXAlignment = Enum.TextXAlignment.Left,
+                Parent = Items["Background"].Instance,
+                AutomaticSize = Enum.AutomaticSize.XY
+            }):AddToTheme({TextColor3 = 'Accent'})
 
-            local WaveHeight = 4
-            local WaveSpeed =  2.5
-            local WaveSpacing = 0.25
+            -- Typewriter animation
+            local TypewriterSpeed = 0.08 -- seconds per character
+            local CurrentIndex = 0
+            local TypewriterEnabled = true
 
-            local Letters = { } -- try not to make the title too long since every letter is created individually for the animation
-
-            for Index = 1, #Window.Name do 
-                local Letter = Window.Name:sub(Index, Index)
-
-                local NewLetter = Library:Create("TextLabel",{
-                    Name = "\0",
-                    Size = UDim2.new(0, Width, 0, 0),
-                    Position = UDim2.new(0, OffsetX + ((Index - 1) * Width), 0, OffsetY),
-                    BackgroundTransparency = 1,
-                    BorderSizePixel = 0,
-                    Text = Letter,
-                    FontFace = Library.Font,
-                    TextSize = Library.FontSize,
-                    Parent = Items["Background"].Instance
-                }):AddToTheme({TextColor3 = 'Accent'})
-
-                Letters[Index] = {
-                    LetterInstance = NewLetter,
-                    X = OffsetX + ((Index - 1) * Width),
-                    Y = OffsetY
-                }
-            end
-
-            Library:Connect(RunService.RenderStepped, function()
-                local Tick = tick()
-
-                for Index, Value in Letters do 
-                    local OffsetY = math.sin((Tick * WaveSpeed) - (Index * WaveSpacing)) * WaveHeight
-
-                    Value.LetterInstance.Instance.Position = UDim2.new(0, Value.X, 0, Value.Y + OffsetY)
+            Library:Thread(function()
+                while TypewriterEnabled do
+                    if CurrentIndex < #Window.Name then
+                        CurrentIndex = CurrentIndex + 1
+                        TypewriterLabel.Instance.Text = Window.Name:sub(1, CurrentIndex)
+                        task.wait(TypewriterSpeed)
+                    else
+                        task.wait(2) -- Wait 2 seconds before restarting
+                        CurrentIndex = 0
+                        TypewriterLabel.Instance.Text = ""
+                    end
                 end
             end)            
 
