@@ -2796,9 +2796,7 @@ local Library = {
                 ColumnsData = { },
                 Items = { },
                 Active = false,
-                Debounce = false,
-                Subtabs = { },
-                CurrentSubtab = nil
+                Debounce = false
             }
 
             local Items = { } do 
@@ -2970,168 +2968,6 @@ local Library = {
             return setmetatable(Page, Library)
         end
 
-        -- Subtab method for pages
-        Library.Subtab = function(Self, Params)
-            Params = Params or { }
-
-            local Subtab = {
-                Name = Params.Name or Params.name or "Subtab",
-                Page = Self,
-                Items = { },
-                Active = false,
-                Sections = { }
-            }
-
-            local Items = { } do
-                Items["Inactive"] = Library:Create("TextButton", {
-                    Name = "\0",
-                    FontFace = Library.Font,
-                    TextSize = Library.FontSize,
-                    TextXAlignment = Enum.TextXAlignment.Left,
-                    Parent = Self.Items["Page"].Instance,
-                    TextColor3 = Library.Theme["Inactive Text"],
-                    Text = Subtab.Name,
-                    AutoButtonColor = false,
-                    Size = UDim2.new(0, 0, 0, 20),
-                    BackgroundTransparency = 1,
-                    BorderSizePixel = 0,
-                    AutomaticSize = Enum.AutomaticSize.X,
-                    LayoutOrder = #Self.Subtabs + 1
-                }):AddToTheme({TextColor3 = 'Inactive Text'})
-
-                Items["Container"] = Library:Create("Frame", {
-                    Name = "\0",
-                    Parent = Self.Items["Page"].Instance,
-                    BackgroundTransparency = 1,
-                    Visible = false,
-                    Size = UDim2.new(1, 0, 1, 0),
-                    BorderSizePixel = 0
-                })
-
-                Library:Create("UIListLayout", {
-                    Name = "\0",
-                    Parent = Items["Container"].Instance,
-                    FillDirection = Enum.FillDirection.Horizontal,
-                    HorizontalFlex = Enum.UIFlexAlignment.Fill,
-                    Padding = UDim.new(0, 11),
-                    SortOrder = Enum.SortOrder.LayoutOrder,
-                    VerticalFlex = Enum.UIFlexAlignment.Fill
-                })
-
-                Items["LeftColumn"] = Library:Create("ScrollingFrame", {
-                    Name = "\0",
-                    Parent = Items["Container"].Instance,
-                    ScrollBarImageColor3 = Color3.fromRGB(0, 0, 0),
-                    Active = true,
-                    AutomaticCanvasSize = Enum.AutomaticSize.Y,
-                    ScrollBarThickness = 0,
-                    BackgroundTransparency = 1,
-                    Size = UDim2.new(0, 100, 0, 100),
-                    BorderSizePixel = 0,
-                    CanvasSize = UDim2.new(0, 0, 0, 0)
-                })
-
-                Library:Create("UIListLayout", {
-                    Name = "\0",
-                    Parent = Items["LeftColumn"].Instance,
-                    Padding = UDim.new(0, 15),
-                    SortOrder = Enum.SortOrder.LayoutOrder
-                })
-
-                Library:Create("UIPadding", {
-                    Name = "\0",
-                    Parent = Items["LeftColumn"].Instance,
-                    PaddingTop = UDim.new(0, 19),
-                    PaddingBottom = UDim.new(0, 15),
-                    PaddingRight = UDim.new(0, 2),
-                    PaddingLeft = UDim.new(0, 10)
-                })
-
-                Items["RightColumn"] = Library:Create("ScrollingFrame", {
-                    Name = "\0",
-                    Parent = Items["Container"].Instance,
-                    ScrollBarImageColor3 = Color3.fromRGB(0, 0, 0),
-                    Active = true,
-                    AutomaticCanvasSize = Enum.AutomaticSize.Y,
-                    ScrollBarThickness = 0,
-                    BackgroundTransparency = 1,
-                    Size = UDim2.new(0, 100, 0, 100),
-                    BorderSizePixel = 0,
-                    CanvasSize = UDim2.new(0, 0, 0, 0)
-                })
-
-                Library:Create("UIListLayout", {
-                    Name = "\0",
-                    Parent = Items["RightColumn"].Instance,
-                    Padding = UDim.new(0, 15),
-                    SortOrder = Enum.SortOrder.LayoutOrder
-                })
-
-                Library:Create("UIPadding", {
-                    Name = "\0",
-                    Parent = Items["RightColumn"].Instance,
-                    PaddingTop = UDim.new(0, 19),
-                    PaddingBottom = UDim.new(0, 15),
-                    PaddingRight = UDim.new(0, 10),
-                    PaddingLeft = UDim.new(0, 2)
-                })
-
-                Subtab.ColumnsData = {Items["LeftColumn"], Items["RightColumn"]}
-                Subtab.Items = Items
-            end
-
-            function Subtab:Turn()
-                local Old = Subtab.Page.CurrentSubtab
-
-                if Old == Subtab then
-                    return
-                end
-
-                if Subtab.Debounce then
-                    return
-                end
-
-                if Old and Old.Debounce then
-                    return
-                end
-
-                Subtab.Debounce = true
-
-                if Old then
-                    Old.Items["Inactive"]:ChangeItemTheme({TextColor3 = "Inactive Text"})
-                    Old.Items["Inactive"]:Tween({TextColor3 = Library.Theme["Inactive Text"]})
-                    Old.Items["Container"]:FadeDescendants(false, function()
-                        Old.Items["Container"].Instance.Parent = Library.UnusedHolder.Instance
-                    end)
-                    Old.Active = false
-                end
-
-                Subtab.Items["Container"].Instance.Parent = Subtab.Page.Items["Page"].Instance
-                Subtab.Items["Container"].Instance.Visible = true
-                Subtab.Items["Container"]:FadeDescendants(true, function()
-                    Subtab.Debounce = false
-                end)
-
-                Subtab.Items["Inactive"]:ChangeItemTheme({TextColor3 = "Accent"})
-                Subtab.Items["Inactive"]:Tween({TextColor3 = Library.Theme["Accent"]})
-
-                Subtab.Page.CurrentSubtab = Subtab
-                Subtab.Active = true
-            end
-
-            Items["Inactive"]:Connect("MouseButton1Down", function()
-                Subtab:Turn()
-            end)
-
-            table.insert(Subtab.Page.Subtabs, Subtab)
-
-            if #Subtab.Page.Subtabs == 1 then
-                Subtab:Turn()
-            end
-
-            return setmetatable(Subtab, Library)
-        end
-
         Library.Section = function(Self, Params)
             Params = Params or { }
 
@@ -3139,19 +2975,15 @@ local Library = {
                 Name = Params.Name or Params.name or "Section",
                 Side = Params.Side or Params.side or 1,
 
-                Window = Self.Window or Self.Page.Window,
-                Page = Self.Page or Self,
-                Subtab = Self.Subtab or nil,
+                Window = Self.Window,
+                Page = Self,
                 Items = { },
             }
 
-            -- Determine parent columns based on whether we're in a subtab or page
-            local ParentColumns = Section.Subtab and Section.Subtab.ColumnsData or Section.Page.ColumnsData
-
-            local Items = { } do
+            local Items = { } do 
                 Items["Section"] = Library:Create("Frame", {
                     Name = "\0",
-                    Parent = ParentColumns[Section.Side].Instance,
+                    Parent = Section.Page.ColumnsData[Section.Side].Instance,
                     Size = UDim2.new(1, 0, 0, 0),
                     BorderSizePixel = 0,
                     AutomaticSize = Enum.AutomaticSize.Y,
