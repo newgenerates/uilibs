@@ -4866,26 +4866,25 @@ local Library = {
                 end
 
                 local KBMSection = SettingsPage:Section({Name = "KBM Visualiser", Side = 1}) do
-                    -- KBM state
                     local kbmShowBackground = true
                     local kbmShowWASD       = true
                     local kbmShowMouse      = true
                     local kbmShowButtons    = true
                     local kbmShowSpace      = true
-                    local kbmBgColor        = Library.Theme["Background"]
 
-                    -- Outer frame
+                    -- ── Frame ──
                     local KBMFrame = Library:Create("Frame", {
                         Name = "\0",
                         Parent = Library.Holder.Instance,
                         Position = UDim2.new(0, 10, 0.5, 70),
-                        Size = UDim2.new(0, 160, 0, 100),
+                        Size = UDim2.new(0, 162, 0, 112),
                         BorderSizePixel = 0,
                         Visible = false,
                         BackgroundColor3 = Library.Theme["Background"]
                     }):AddToTheme({BackgroundColor3 = "Background"})
 
-                    Library:Create("UIStroke", {
+                    -- Store stroke refs so we can hide them when background is removed
+                    local _kbmBorderStroke = Library:Create("UIStroke", {
                         Name = "\0",
                         Parent = KBMFrame.Instance,
                         ApplyStrokeMode = Enum.ApplyStrokeMode.Border,
@@ -4894,7 +4893,7 @@ local Library = {
                         BorderOffset = UDim.new(0, 1)
                     }):AddToTheme({Color = "Border"})
 
-                    Library:Create("UIStroke", {
+                    local _kbmOutlineStroke = Library:Create("UIStroke", {
                         Name = "\0",
                         Parent = KBMFrame.Instance,
                         ApplyStrokeMode = Enum.ApplyStrokeMode.Border,
@@ -4902,18 +4901,41 @@ local Library = {
                         Color = Library.Theme["Outline"]
                     }):AddToTheme({Color = "Outline"})
 
+                    -- ── Top glow bar ──
+                    local GlowBar = Library:Create("Frame", {
+                        Name = "\0",
+                        Parent = KBMFrame.Instance,
+                        Size = UDim2.new(1, 0, 0, 2),
+                        Position = UDim2.new(0, 0, 0, 0),
+                        BorderSizePixel = 0,
+                        BackgroundColor3 = Library.Theme["Accent"],
+                        ZIndex = 2,
+                    }):AddToTheme({BackgroundColor3 = "Accent"})
+
+                    Library:Create("Frame", {
+                        Name = "\0",
+                        Parent = GlowBar.Instance,
+                        Position = UDim2.new(0, 0, 1, 0),
+                        Size = UDim2.new(1, 0, 0, 5),
+                        BorderSizePixel = 0,
+                        BackgroundColor3 = Library.Theme["Accent"],
+                        BackgroundTransparency = 0.72,
+                        ZIndex = 2,
+                    }):AddToTheme({BackgroundColor3 = "Accent"})
+
                     KBMFrame:MakeDraggable()
 
-                    -- Padding container so everything is neatly inset
+                    -- ── Inset pad (below glow) ──
                     local KBMPad = Library:Create("Frame", {
                         Name = "\0",
                         Parent = KBMFrame.Instance,
-                        Position = UDim2.new(0, 6, 0, 6),
-                        Size = UDim2.new(1, -12, 1, -12),
+                        Position = UDim2.new(0, 6, 0, 9),
+                        Size = UDim2.new(1, -12, 1, -15),
                         BackgroundTransparency = 1,
                         BorderSizePixel = 0,
                     })
 
+                    -- ── Key cell helper ──
                     local function MakeKeyCell(Parent, Label, Pos, Sz)
                         Sz = Sz or UDim2.new(0, 24, 0, 24)
                         local KeyOutline = Library:Create("Frame", {
@@ -4951,12 +4973,12 @@ local Library = {
                         return KeyOutline, KeyInner
                     end
 
-                    -- WASD group — left side, vertically centred
+                    -- ── WASD group ──
                     local wasdGroup = Library:Create("Frame", {
                         Name = "\0",
                         Parent = KBMPad.Instance,
                         Position = UDim2.new(0, 0, 0, 0),
-                        Size = UDim2.new(0, 78, 0, 54),
+                        Size = UDim2.new(0, 78, 0, 97),
                         BackgroundTransparency = 1,
                         BorderSizePixel = 0,
                     })
@@ -4966,134 +4988,124 @@ local Library = {
                     local _, sKey = MakeKeyCell(wasdGroup.Instance, "S", UDim2.new(0, 27, 0, 26))
                     local _, dKey = MakeKeyCell(wasdGroup.Instance, "D", UDim2.new(0, 54, 0, 26))
 
-                    -- Space bar — full width below WASD
+                    -- Space bar
                     local SpaceOutline, SpaceInner = MakeKeyCell(
-                        KBMPad.Instance, "space",
-                        UDim2.new(0, 0, 0, 58),
+                        wasdGroup.Instance, "space",
+                        UDim2.new(0, 0, 0, 52),
                         UDim2.new(0, 78, 0, 14)
                     )
 
-                    -- Mouse body — right side
-                    -- Overall mouse outline (body shape)
-                    local mouseGroup = Library:Create("Frame", {
+                    -- M1 / M2 click labels
+                    local function MakeClickLabel(Parent, Label, Pos)
+                        local bg = Library:Create("Frame", {
+                            Name = "\0",
+                            Parent = Parent,
+                            Position = Pos,
+                            Size = UDim2.new(0, 36, 0, 14),
+                            BorderSizePixel = 0,
+                            BackgroundColor3 = Library.Theme["Element 2"]
+                        }):AddToTheme({BackgroundColor3 = "Element 2"})
+
+                        Library:Create("UICorner", {Name="\0", Parent=bg.Instance, CornerRadius=UDim.new(0,3)})
+
+                        local lbl = Library:Create("TextLabel", {
+                            Name = "\0",
+                            Parent = bg.Instance,
+                            FontFace = Library.Font,
+                            TextSize = Library.FontSize,
+                            Text = Label,
+                            TextColor3 = Library.Theme["Inactive Text"],
+                            BackgroundTransparency = 1,
+                            BorderSizePixel = 0,
+                            Size = UDim2.new(1, 0, 1, 0),
+                            TextXAlignment = Enum.TextXAlignment.Center,
+                            TextYAlignment = Enum.TextYAlignment.Center
+                        }):AddToTheme({TextColor3 = "Inactive Text"})
+
+                        return bg, lbl
+                    end
+
+                    local M1Bg, M1Label = MakeClickLabel(wasdGroup.Instance, "M1", UDim2.new(0, 0,  0, 70))
+                    local M2Bg, M2Label = MakeClickLabel(wasdGroup.Instance, "M2", UDim2.new(0, 40, 0, 70))
+
+                    -- ── Look direction indicator (big circle + inner dot + tail) ──
+                    local LookGroup = Library:Create("Frame", {
                         Name = "\0",
                         Parent = KBMPad.Instance,
-                        Position = UDim2.new(0, 86, 0, 0),
-                        Size = UDim2.new(0, 52, 0, 72),
+                        AnchorPoint = Vector2.new(0, 0.5),
+                        Position = UDim2.new(0, 86, 0.5, 0),
+                        Size = UDim2.new(0, 66, 0, 66),
                         BackgroundTransparency = 1,
                         BorderSizePixel = 0,
                     })
 
-                    local MouseBody = Library:Create("Frame", {
+                    -- Big outer ring
+                    local OuterRing = Library:Create("Frame", {
                         Name = "\0",
-                        Parent = mouseGroup.Instance,
-                        Position = UDim2.new(0, 0, 0, 0),
+                        Parent = LookGroup.Instance,
                         Size = UDim2.new(1, 0, 1, 0),
                         BorderSizePixel = 0,
                         BackgroundColor3 = Library.Theme["Element"]
                     }):AddToTheme({BackgroundColor3 = "Element"})
 
-                    Library:Create("UICorner", {
-                        Name = "\0",
-                        Parent = MouseBody.Instance,
-                        CornerRadius = UDim.new(0, 8)
-                    })
+                    Library:Create("UICorner", {Name="\0", Parent=OuterRing.Instance, CornerRadius=UDim.new(1,0)})
 
                     Library:Create("UIStroke", {
                         Name = "\0",
-                        Parent = MouseBody.Instance,
+                        Parent = OuterRing.Instance,
                         ApplyStrokeMode = Enum.ApplyStrokeMode.Border,
-                        Color = Library.Theme["Outline"],
-                        Thickness = 1
-                    }):AddToTheme({Color = "Outline"})
+                        Color = Library.Theme["Accent"],
+                        Thickness = 1.5
+                    }):AddToTheme({Color = "Accent"})
 
-                    -- Divider line between LMB and RMB
-                    Library:Create("Frame", {
+                    -- Thin crosshair lines
+                    local function MakeLine(isVert)
+                        Library:Create("Frame", {
+                            Name = "\0",
+                            Parent = OuterRing.Instance,
+                            AnchorPoint = Vector2.new(0.5, 0.5),
+                            Position = UDim2.new(0.5, 0, 0.5, 0),
+                            Size = isVert and UDim2.new(0, 1, 0, 14) or UDim2.new(0, 14, 0, 1),
+                            BorderSizePixel = 0,
+                            BackgroundColor3 = Library.Theme["Outline"],
+                            BackgroundTransparency = 0.3,
+                        }):AddToTheme({BackgroundColor3 = "Outline"})
+                    end
+                    MakeLine(true); MakeLine(false)
+
+                    -- Tail line (direction streak from inner dot toward center)
+                    local TailLine = Library:Create("Frame", {
                         Name = "\0",
-                        Parent = MouseBody.Instance,
-                        Position = UDim2.new(0.5, -1, 0, 0),
-                        Size = UDim2.new(0, 1, 0, 22),
+                        Parent = OuterRing.Instance,
+                        AnchorPoint = Vector2.new(0.5, 1),
+                        Position = UDim2.new(0.5, 0, 0.5, 0),
+                        Size = UDim2.new(0, 1, 0, 0),
                         BorderSizePixel = 0,
-                        BackgroundColor3 = Library.Theme["Outline"]
-                    }):AddToTheme({BackgroundColor3 = "Outline"})
+                        BackgroundColor3 = Library.Theme["Accent"],
+                        BackgroundTransparency = 0.35,
+                    }):AddToTheme({BackgroundColor3 = "Accent"})
 
-                    -- Horizontal divider separating button zone from scroll zone
-                    Library:Create("Frame", {
+                    -- Small inner indicator dot
+                    local InnerDot = Library:Create("Frame", {
                         Name = "\0",
-                        Parent = MouseBody.Instance,
-                        Position = UDim2.new(0, 0, 0, 22),
-                        Size = UDim2.new(1, 0, 0, 1),
-                        BorderSizePixel = 0,
-                        BackgroundColor3 = Library.Theme["Outline"]
-                    }):AddToTheme({BackgroundColor3 = "Outline"})
-
-                    -- LMB click area (top-left of mouse)
-                    local LMBArea = Library:Create("Frame", {
-                        Name = "\0",
-                        Parent = MouseBody.Instance,
-                        Position = UDim2.new(0, 1, 0, 1),
-                        Size = UDim2.new(0.5, -1, 0, 21),
-                        BorderSizePixel = 0,
-                        BackgroundTransparency = 1
-                    })
-
-                    Library:Create("UICorner", {Name="\0", Parent=LMBArea.Instance, CornerRadius=UDim.new(0,7)})
-
-                    -- RMB click area (top-right of mouse)
-                    local RMBArea = Library:Create("Frame", {
-                        Name = "\0",
-                        Parent = MouseBody.Instance,
-                        Position = UDim2.new(0.5, 1, 0, 1),
-                        Size = UDim2.new(0.5, -2, 0, 21),
-                        BorderSizePixel = 0,
-                        BackgroundTransparency = 1
-                    })
-
-                    Library:Create("UICorner", {Name="\0", Parent=RMBArea.Instance, CornerRadius=UDim.new(0,7)})
-
-                    -- Scroll wheel track
-                    local ScrollTrack = Library:Create("Frame", {
-                        Name = "\0",
-                        Parent = MouseBody.Instance,
-                        AnchorPoint = Vector2.new(0.5, 0),
-                        Position = UDim2.new(0.5, 0, 0, 26),
-                        Size = UDim2.new(0, 6, 0, 20),
-                        BorderSizePixel = 0,
-                        BackgroundColor3 = Library.Theme["Element 2"]
-                    }):AddToTheme({BackgroundColor3 = "Element 2"})
-
-                    Library:Create("UICorner", {Name="\0", Parent=ScrollTrack.Instance, CornerRadius=UDim.new(0,3)})
-
-                    -- Movement dot — shows mouse velocity direction by offsetting inside the scroll area
-                    local MoveDot = Library:Create("Frame", {
-                        Name = "\0",
-                        Parent = MouseBody.Instance,
+                        Parent = OuterRing.Instance,
                         AnchorPoint = Vector2.new(0.5, 0.5),
-                        Position = UDim2.new(0.5, 0, 0, 36),
-                        Size = UDim2.new(0, 4, 0, 4),
+                        Position = UDim2.new(0.5, 0, 0.5, 0),
+                        Size = UDim2.new(0, 6, 0, 6),
                         BorderSizePixel = 0,
                         BackgroundColor3 = Library.Theme["Accent"]
                     }):AddToTheme({BackgroundColor3 = "Accent"})
 
-                    Library:Create("UICorner", {Name="\0", Parent=MoveDot.Instance, CornerRadius=UDim.new(1,0)})
+                    Library:Create("UICorner", {Name="\0", Parent=InnerDot.Instance, CornerRadius=UDim.new(1,0)})
 
+                    -- ── Input handlers ──
                     local function SetKeyActive(Inner, Active)
-                        if Active then
-                            Inner:ChangeItemTheme({BackgroundColor3 = "Accent"})
-                            Inner.Instance.BackgroundColor3 = Library.Theme["Accent"]
-                        else
-                            Inner:ChangeItemTheme({BackgroundColor3 = "Element 2"})
-                            Inner.Instance.BackgroundColor3 = Library.Theme["Element 2"]
-                        end
+                        Inner.Instance.BackgroundColor3 = Active and Library.Theme["Accent"] or Library.Theme["Element 2"]
                     end
 
-                    local function SetButtonActive(Area, Active)
-                        if Active then
-                            Area.Instance.BackgroundColor3 = Library.Theme["Accent"]
-                            Area.Instance.BackgroundTransparency = 0.3
-                        else
-                            Area.Instance.BackgroundTransparency = 1
-                        end
+                    local function SetClickActive(Bg, Lbl, Active)
+                        Bg.Instance.BackgroundColor3  = Active and Library.Theme["Accent"]        or Library.Theme["Element 2"]
+                        Lbl.Instance.TextColor3        = Active and Library.Theme["Background"]    or Library.Theme["Inactive Text"]
                     end
 
                     Library:Connect(UserInputService.InputBegan, function(Input, GPE)
@@ -5107,9 +5119,9 @@ local Library = {
                             elseif Input.KeyCode == Enum.KeyCode.Space then SetKeyActive(SpaceInner, true)
                             end
                         elseif Input.UserInputType == Enum.UserInputType.MouseButton1 then
-                            SetButtonActive(LMBArea, true)
+                            if kbmShowButtons then SetClickActive(M1Bg, M1Label, true) end
                         elseif Input.UserInputType == Enum.UserInputType.MouseButton2 then
-                            SetButtonActive(RMBArea, true)
+                            if kbmShowButtons then SetClickActive(M2Bg, M2Label, true) end
                         end
                     end)
 
@@ -5124,60 +5136,83 @@ local Library = {
                             elseif Input.KeyCode == Enum.KeyCode.Space then SetKeyActive(SpaceInner, false)
                             end
                         elseif Input.UserInputType == Enum.UserInputType.MouseButton1 then
-                            SetButtonActive(LMBArea, false)
+                            SetClickActive(M1Bg, M1Label, false)
                         elseif Input.UserInputType == Enum.UserInputType.MouseButton2 then
-                            SetButtonActive(RMBArea, false)
+                            SetClickActive(M2Bg, M2Label, false)
                         end
                     end)
 
-                    -- Smooth mouse movement dot — tracks actual delta, smoothly returns to center
+                    -- ── Camera look-delta tracker ──
+                    local _prevLook   = Vector3.new(0, 0, -1)
                     local _dotOffX, _dotOffY = 0, 0
-                    local _lastMousePos = Vector2.new(0, 0)
+                    local _ringMax = 26   -- max offset px (slightly inside the 33px ring radius)
+
                     Library:Connect(RunService.RenderStepped, function(dt)
                         if not KBMFrame.Instance.Visible then return end
 
-                        local cur = UserInputService:GetMouseLocation()
-                        local delta = cur - _lastMousePos
-                        _lastMousePos = cur
+                        local curLook = workspace.CurrentCamera.CFrame.LookVector
+                        -- Yaw delta (horizontal look)
+                        local dYaw   = math.atan2(-curLook.X, -curLook.Z)
+                                     - math.atan2(-_prevLook.X, -_prevLook.Z)
+                        -- Pitch delta (vertical look)
+                        local dPitch = math.asin(math.clamp(curLook.Y,    -1, 1))
+                                     - math.asin(math.clamp(_prevLook.Y,  -1, 1))
+                        _prevLook = curLook
 
-                        local speed = math.clamp(delta.Magnitude, 0, 40)
-                        local dirX  = delta.Magnitude > 0.5 and (delta.X / delta.Magnitude) or 0
-                        local dirY  = delta.Magnitude > 0.5 and (delta.Y / delta.Magnitude) or 0
+                        -- Scale: ~3 px per degree
+                        local scale = 3 / (math.pi / 180)
+                        _dotOffX = _dotOffX + dYaw   * scale
+                        _dotOffY = _dotOffY - dPitch * scale
 
-                        _dotOffX = _dotOffX + dirX * speed * 0.12
-                        _dotOffY = _dotOffY + dirY * speed * 0.12
-
-                        local maxOff = 6
+                        -- Clamp to ring
                         local mag = math.sqrt(_dotOffX*_dotOffX + _dotOffY*_dotOffY)
-                        if mag > maxOff then
-                            _dotOffX = (_dotOffX / mag) * maxOff
-                            _dotOffY = (_dotOffY / mag) * maxOff
+                        if mag > _ringMax then
+                            _dotOffX = _dotOffX / mag * _ringMax
+                            _dotOffY = _dotOffY / mag * _ringMax
+                            mag = _ringMax
                         end
 
-                        local decay = math.clamp(1 - dt * 8, 0, 1)
+                        -- Return to center
+                        local decay = math.clamp(1 - dt * 6, 0, 1)
                         _dotOffX = _dotOffX * decay
                         _dotOffY = _dotOffY * decay
+                        mag = mag * decay
 
-                        -- stretch dot in direction of movement
-                        local stretch = math.clamp(mag / maxOff, 0, 1)
-                        local dotW = math.floor(4 + stretch * 4)
-                        local dotH = math.floor(4 + stretch * 4)
+                        local ox = math.floor(_dotOffX + 0.5)
+                        local oy = math.floor(_dotOffY + 0.5)
 
-                        MoveDot.Instance.Size = UDim2.new(0, dotW, 0, dotH)
-                        MoveDot.Instance.Position = UDim2.new(0.5, math.floor(_dotOffX), 0, 36 + math.floor(_dotOffY))
+                        -- Move inner dot
+                        InnerDot.Instance.Position = UDim2.new(0.5, ox, 0.5, oy)
+
+                        -- Tail line: stretches from dot back toward center
+                        local tailLen = math.floor(mag * 0.65 + 0.5)
+                        if tailLen > 1 then
+                            TailLine.Instance.Rotation = math.deg(math.atan2(ox, -oy))
+                            TailLine.Instance.Position = UDim2.new(0.5, ox, 0.5, oy)
+                            TailLine.Instance.Size     = UDim2.new(0, 1, 0, tailLen)
+                        else
+                            TailLine.Instance.Size = UDim2.new(0, 1, 0, 0)
+                        end
                     end)
 
-                    local function applyKBMVisibility()
-                        wasdGroup.Instance.Visible = kbmShowWASD
-                        SpaceOutline.Instance.Visible = kbmShowSpace
-                        mouseGroup.Instance.Visible = kbmShowMouse
-                        if not kbmShowButtons then
-                            LMBArea.Instance.BackgroundTransparency = 1
-                            RMBArea.Instance.BackgroundTransparency = 1
-                        end
-                        KBMFrame.Instance.BackgroundTransparency = kbmShowBackground and 0 or 1
+                    -- ── Visibility helpers ──
+                    local function setStrokes(v)
+                        _kbmBorderStroke.Instance.Enabled  = v
+                        _kbmOutlineStroke.Instance.Enabled = v
                     end
 
+                    local function applyKBMVisibility()
+                        wasdGroup.Instance.Visible          = kbmShowWASD
+                        SpaceOutline.Instance.Visible       = kbmShowWASD and kbmShowSpace
+                        M1Bg.Instance.Visible               = kbmShowWASD and kbmShowButtons
+                        M2Bg.Instance.Visible               = kbmShowWASD and kbmShowButtons
+                        LookGroup.Instance.Visible          = kbmShowMouse
+                        KBMFrame.Instance.BackgroundTransparency = kbmShowBackground and 0 or 1
+                        GlowBar.Instance.Visible            = kbmShowBackground
+                        setStrokes(kbmShowBackground)
+                    end
+
+                    -- ── Settings toggles ──
                     KBMSection:Toggle({
                         Name = "Show KBM Visualiser",
                         Flag = "KBMVisualiser",
@@ -5194,6 +5229,8 @@ local Library = {
                         Callback = function(Value)
                             kbmShowBackground = Value
                             KBMFrame.Instance.BackgroundTransparency = Value and 0 or 1
+                            GlowBar.Instance.Visible = Value
+                            setStrokes(Value)
                         end
                     })
 
@@ -5204,27 +5241,16 @@ local Library = {
                         Callback = function(Value)
                             kbmShowWASD = Value
                             wasdGroup.Instance.Visible = Value
-                            SpaceOutline.Instance.Visible = Value and kbmShowSpace
                         end
                     })
 
                     KBMSection:Toggle({
-                        Name = "Show Space",
-                        Flag = "KBMShowSpace",
-                        Default = true,
-                        Callback = function(Value)
-                            kbmShowSpace = Value
-                            SpaceOutline.Instance.Visible = Value and kbmShowWASD
-                        end
-                    })
-
-                    KBMSection:Toggle({
-                        Name = "Show Mouse",
+                        Name = "Show Look Tracker",
                         Flag = "KBMShowMouse",
                         Default = true,
                         Callback = function(Value)
                             kbmShowMouse = Value
-                            mouseGroup.Instance.Visible = Value
+                            LookGroup.Instance.Visible = Value
                         end
                     })
 
@@ -5234,10 +5260,8 @@ local Library = {
                         Default = true,
                         Callback = function(Value)
                             kbmShowButtons = Value
-                            if not Value then
-                                LMBArea.Instance.BackgroundTransparency = 1
-                                RMBArea.Instance.BackgroundTransparency = 1
-                            end
+                            M1Bg.Instance.Visible = Value and kbmShowWASD
+                            M2Bg.Instance.Visible = Value and kbmShowWASD
                         end
                     })
 
