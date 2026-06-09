@@ -1,18 +1,3 @@
---[[
-    Code is not as clean as it could be but it works
-    
-    Made by samet
-    This is a FREE ui release made by me (samet) on May 30 to celebrate my birthday, If anyone is selling this they are scammers.
-    The design credits for the ui goes to eskolzz. It was brought to life in luau by me.
-
-    MY ONLY ACCOUNT IS: joestar._3
-
-    If you want to commission a ui:
-    https://discord.gg/XsTteAwprs
-
-    Please give credit if used or modified.
-]]
-
 if getgenv().Library then
     getgenv().Library:Exit()
 end
@@ -36,7 +21,7 @@ local Mouse = cloneref(LocalPlayer:GetMouse())
 
 local Library = { 
     Flags = { },
-    MenuKeybind = tostring(Enum.KeyCode.X), -- has to be a string
+    MenuKeybind = tostring(Enum.KeyCode.X),
 
     Directory = "iveraprivate",
     Folders = {
@@ -73,11 +58,10 @@ local Library = {
 
     ZIndexOrder = {
         ["OptionHolder"] = 4,
-        ["KeybindWindow"] = 4, -- burp
+        ["KeybindWindow"] = 4,
         ["ColorpickerWindow"] = 6
     },
 
-    -- Ignore below
     Threads = { },
     Connections = { },
     SetFlags = { },
@@ -176,7 +160,6 @@ local Library = {
         ["RightAlt"]          = "RightAlt"
     }
 
-    -- Folders
     if not isfolder(Library.Directory) then 
         makefolder(Library.Directory)
     end
@@ -208,7 +191,6 @@ local Library = {
 
     Library.Theme = Themes.Preset
 
-    -- Custom Font
     local CustomFont = { } do
         function CustomFont:New(Name, Weight, Style, Data)
             if not isfile(Data.Id) then 
@@ -659,7 +641,6 @@ local Library = {
         local Success, Result = pcall(Function, table.unpack(Arguements))
 
         if not Success then
-            warn(Result)
             return false
         end
 
@@ -687,7 +668,6 @@ local Library = {
         end)
 
         if not Success then
-            warn("Failed to get config:\n"..Result)
             return
         end
 
@@ -856,7 +836,6 @@ local Library = {
         end)
 
         if not Success then
-            warn("Failed to get theme:\n"..Result)
             return
         end
 
@@ -935,7 +914,6 @@ local Library = {
         ResetOnSpawn = false
     })
 
-    -- themes
     Library:Thread(function()
         writefile(Library.Directory .. Library.Folders.Themes .. "/Sky.json", '{"MenuKeybindModeDropdown":"Toggle","AccentTheming":{"Color":"#93eeff","Alpha":0},"BackgroundTheming":{"Color":"#141718","Alpha":0},"color":{"Color":"#ffffff","Alpha":0},"MenuKeybind":{"Key":"Enum.KeyCode.X","Mode":"Toggle"},"keybindModeDropdown":"Toggle","keybind2ModeDropdown":"Toggle","Hovered ElementTheming":{"Color":"#444949","Alpha":0},"keybind2ShowInKeybindsList":true,"target":"Head","OutlineTheming":{"Color":"#292d2e","Alpha":0},"keybind3ShowInKeybindsList":true,"InlineTheming":{"Color":"#1f2324","Alpha":0},"keybind":{"Key":"Enum.KeyCode.E","Mode":"Toggle"},"keybind3":{"Key":"Enum.KeyCode.R","Mode":"Toggle"},"keybind3ModeDropdown":"Toggle","ElementTheming":{"Color":"#2e3131","Alpha":0},"Element 2Theming":{"Color":"#454a4b","Alpha":0},"keybind2":{"Key":"Enum.KeyCode.F","Mode":"Toggle"},"ThemeName":"Sky","BorderTheming":{"Color":"#1a1d1d","Alpha":0},"AutoParry":false,"ConfigName":"","keybindShowInKeybindsList":true,"Inactive TextTheming":{"Color":"#868686","Alpha":0},"walkspeed":16,"TextTheming":{"Color":"#ffffff","Alpha":0},"MenuKeybindShowInKeybindsList":true,"textbox":"default"}')
         writefile(Library.Directory .. Library.Folders.Themes .. "/Magma.json", '{"MenuKeybindModeDropdown":"Toggle","AccentTheming":{"Color":"#e92b1a","Alpha":0},"BackgroundTheming":{"Color":"#221c1c","Alpha":0},"color":{"Color":"#ffffff","Alpha":0},"MenuKeybind":{"Key":"Enum.KeyCode.X","Mode":"Toggle"},"keybindModeDropdown":"Toggle","keybind2ModeDropdown":"Toggle","Hovered ElementTheming":{"Color":"#362a2a","Alpha":0},"keybind2ShowInKeybindsList":true,"target":"Head","OutlineTheming":{"Color":"#291d1d","Alpha":0},"keybind3ShowInKeybindsList":true,"InlineTheming":{"Color":"#1f1717","Alpha":0},"keybind":{"Key":"Enum.KeyCode.E","Mode":"Toggle"},"keybind3":{"Key":"Enum.KeyCode.R","Mode":"Toggle"},"keybind3ModeDropdown":"Toggle","ElementTheming":{"Color":"#292121","Alpha":0},"Element 2Theming":{"Color":"#363131","Alpha":0},"keybind2":{"Key":"Enum.KeyCode.F","Mode":"Toggle"},"ThemeName":"Magma","BorderTheming":{"Color":"#000000","Alpha":0},"AutoParry":true,"ConfigName":"","keybindShowInKeybindsList":true,"Inactive TextTheming":{"Color":"#867979","Alpha":0},"walkspeed":16,"TextTheming":{"Color":"#d0cfe3","Alpha":0},"MenuKeybindShowInKeybindsList":true,"textbox":"default"}')
@@ -1430,7 +1408,7 @@ local Library = {
                 elseif type(Color) == "string" then
                     Color = Color3.fromHex(Color)
                 else
-                    Color = Color -- Shit
+                    Color = Color
                 end 
 
                 Colorpicker.Hue, Colorpicker.Saturation, Colorpicker.Value = Color:ToHSV()
@@ -1828,7 +1806,7 @@ local Library = {
                 Update()
             end
     
-            function Keybind:Set(Key) -- this is so shit but its whatever
+            function Keybind:Set(Key)
                 if string.find(tostring(Key), "Enum") then 
                     Keybind.Key = tostring(Key)
     
@@ -2005,23 +1983,6 @@ local Library = {
 
                 Items["Watermark"]:MakeDraggable()
                 
-                Library:Create("UIStroke", {
-                    Name = "\0",
-                    Parent = Items["Watermark"].Instance,
-                    ApplyStrokeMode = Enum.ApplyStrokeMode.Border,
-                    LineJoinMode = Enum.LineJoinMode.Miter,
-                    Color = Library.Theme["Border"],
-                    BorderOffset = UDim.new(0, 1)
-                }):AddToTheme({Color = 'Border'})
-                
-                Library:Create("UIStroke", {
-                    Name = "\0",
-                    Parent = Items["Watermark"].Instance,
-                    ApplyStrokeMode = Enum.ApplyStrokeMode.Border,
-                    LineJoinMode = Enum.LineJoinMode.Miter,
-                    Color = Library.Theme["Outline"]
-                }):AddToTheme({Color = 'Outline'})
-                
                 Library:Create("UIPadding", {
                     Name = "\0",
                     Parent = Items["Watermark"].Instance,
@@ -2065,24 +2026,6 @@ local Library = {
                     AutomaticSize = Enum.AutomaticSize.X,
                     BackgroundColor3 = Library.Theme["Inline"]
                 }):AddToTheme({BackgroundColor3 = 'Inline'})
-                
-                -- REMOVED OUTLINE FOR CLEANER LOOK
-                -- Library:Create("UIStroke", {
-                --     Name = "\0",
-                --     Parent = Items["Inline"].Instance,
-                --     ApplyStrokeMode = Enum.ApplyStrokeMode.Border,
-                --     LineJoinMode = Enum.LineJoinMode.Miter,
-                --     Color = Library.Theme["Outline"]
-                -- }):AddToTheme({Color = 'Outline'})
-                
-                -- Library:Create("UIStroke", {
-                --     Name = "\0",
-                --     Parent = Items["Inline"].Instance,
-                --     ApplyStrokeMode = Enum.ApplyStrokeMode.Border,
-                --     LineJoinMode = Enum.LineJoinMode.Miter,
-                --     Color = Library.Theme["Border"],
-                --     BorderOffset = UDim.new(0, 1)
-                -- }):AddToTheme({Color = 'Border'})
                 
                 Items["Holder"] = Library:Create("Frame", {
                     Name = "\0",
@@ -2131,7 +2074,7 @@ local Library = {
             end
 
             function Watermark:SetVisibility(Bool)
-                Items["Watermark"].Instance.Visible = Bool
+                Items["Watermark"].Instance.Parent = Bool and Library.Holder.Instance or Library.UnusedHolder.Instance
             end
 
             function Watermark:SetText(Text)
@@ -2174,7 +2117,7 @@ local Library = {
             return setmetatable(Watermark, Library)
         end
 
-        local KeybindTweenInfo = TweenInfo.new(0.55, Enum.EasingStyle.Exponential, Enum.EasingDirection.Out) -- this is only for the keybind list and should not be used anywhere else
+        local KeybindTweenInfo = TweenInfo.new(0.55, Enum.EasingStyle.Exponential, Enum.EasingDirection.Out)
         
         Library.KeybindList = function(Self)
             local KeybindList = {
@@ -2195,22 +2138,6 @@ local Library = {
                 }):AddToTheme({BackgroundColor3 = "Background"})
 
                 Items["KeybindList"]:MakeDraggable()
-        
-                -- REMOVED OUTLINE FOR CLEANER LOOK
-                -- Library:Create("UIStroke", {
-                --     Parent = Items["KeybindList"].Instance, 
-                --     ApplyStrokeMode = Enum.ApplyStrokeMode.Border, 
-                --     LineJoinMode = Enum.LineJoinMode.Miter, 
-                --     Color = Library.Theme["Border"], 
-                --     BorderOffset = UDim.new(0, 1)
-                -- }):AddToTheme({Color = "Border"})
-
-                -- Library:Create("UIStroke", {
-                --     Parent = Items["KeybindList"].Instance, 
-                --     ApplyStrokeMode = Enum.ApplyStrokeMode.Border, 
-                --     LineJoinMode = Enum.LineJoinMode.Miter, 
-                --     Color = Library.Theme["Outline"]
-                -- }):AddToTheme({Color = "Outline"})
         
                 Library:Create("UIPadding", {
                     Parent = Items["KeybindList"].Instance, 
@@ -2251,21 +2178,6 @@ local Library = {
                     BorderSizePixel = 0, 
                     BackgroundColor3 = Library.Theme["Inline"]
                 }):AddToTheme({BackgroundColor3 = "Inline"})
-        
-                Library:Create("UIStroke", {
-                    Parent = Items["Inline"].Instance,
-                    ApplyStrokeMode = Enum.ApplyStrokeMode.Border, 
-                    LineJoinMode = Enum.LineJoinMode.Miter, 
-                    Color = Library.Theme["Outline"]
-                }):AddToTheme({Color = "Outline"})
-
-                Library:Create("UIStroke", {
-                    Parent = Items["Inline"].Instance, 
-                    ApplyStrokeMode = Enum.ApplyStrokeMode.Border, 
-                    LineJoinMode = Enum.LineJoinMode.Miter, 
-                    Color = Library.Theme["Border"], 
-                    BorderOffset = UDim.new(0, 1)
-                }):AddToTheme({Color = "Border"})
         
                 Items["Content"] = Library:Create("Frame", {
                     Parent = Items["Inline"].Instance, 
@@ -2441,8 +2353,7 @@ local Library = {
         
                 Library:Create("UIStroke", {
                     Name = "\0", 
-                    Parent = 
-                    Items["Notification"].Instance, 
+                    Parent = Items["Notification"].Instance, 
                     ApplyStrokeMode = Enum.ApplyStrokeMode.Border, 
                     LineJoinMode = Enum.LineJoinMode.Miter, 
                     Color = Library.Theme["Border"], 
@@ -2499,7 +2410,7 @@ local Library = {
                 Notification.Items = Items
             end
         
-            local FadeNotification = function(Transparency) -- cant use fadedescendants because that one saves the transparency and it breaks and looks really gay 
+            local FadeNotification = function(Transparency)
                 Items["Notification"]:Tween({BackgroundTransparency = Transparency}, NotifTweenInfo)
         
                 for _, Value in Items["Notification"].Instance:GetDescendants() do
@@ -2622,22 +2533,6 @@ local Library = {
                     BackgroundColor3 = Library.Theme["Background"]
                 }):AddToTheme({BackgroundColor3 = 'Background'})
                 
-                --[[
-                Items["Title"] = Library:Create("TextLabel", {
-                    Name = "\0",
-                    FontFace = Library.Font,
-                    TextSize = Library.FontSize,
-                    TextXAlignment = Enum.TextXAlignment.Left,
-                    Parent = Items["Background"].Instance,
-                    TextColor3 = Library.Theme["Accent"],
-                    Text = Window.Name,
-                    Position = UDim2.new(0, 8, 0, 8),
-                    BackgroundTransparency = 1,
-                    BorderSizePixel = 0,
-                    AutomaticSize = Enum.AutomaticSize.XY
-                }):AddToTheme({TextColor3 = 'Accent'})
-                --]]
-                
                 Items["Liner"] = Library:Create("Frame", {
                     Name = "\0",
                     Parent = Items["Background"].Instance,
@@ -2746,7 +2641,6 @@ local Library = {
                 end
             end)
 
-            -- Typewriter effect for title
             local TypewriterLabel = Library:Create("TextLabel",{
                 Name = "\0",
                 Size = UDim2.new(0, 0, 0, 0),
@@ -2761,8 +2655,7 @@ local Library = {
                 AutomaticSize = Enum.AutomaticSize.XY
             }):AddToTheme({TextColor3 = 'Accent'})
 
-            -- Typewriter animation
-            local TypewriterSpeed = 0.08 -- seconds per character
+            local TypewriterSpeed = 0.08
             local CurrentIndex = 0
             local TypewriterEnabled = true
 
@@ -2773,7 +2666,7 @@ local Library = {
                         TypewriterLabel.Instance.Text = Window.Name:sub(1, CurrentIndex)
                         task.wait(TypewriterSpeed)
                     else
-                        task.wait(2) -- Wait 2 seconds before restarting
+                        task.wait(2)
                         CurrentIndex = 0
                         TypewriterLabel.Instance.Text = ""
                     end
@@ -3375,7 +3268,7 @@ local Library = {
             end)
 
             function Button:Press()
-                pcall(function() -- i have to do this so it doesnt error on unload
+                pcall(function()
                     Library:SafeCall(Button.Callback)
 
                     Items["Accent"]:Tween({BackgroundTransparency = 0, Size = UDim2.new(1, 0, 1, 0)})
@@ -4982,6 +4875,238 @@ local Library = {
                     })
                 end
 
+                local KBMSection = SettingsPage:Section({Name = "KBM Visualiser", Side = 1}) do
+                    local KBMFrame = Library:Create("Frame", {
+                        Name = "\0",
+                        Parent = Library.Holder.Instance,
+                        Position = UDim2.new(0, 10, 0.5, 70),
+                        Size = UDim2.new(0, 155, 0, 130),
+                        BorderSizePixel = 0,
+                        Visible = false,
+                        BackgroundColor3 = Library.Theme["Background"]
+                    }):AddToTheme({BackgroundColor3 = "Background"})
+
+                    Library:Create("UIStroke", {
+                        Name = "\0",
+                        Parent = KBMFrame.Instance,
+                        ApplyStrokeMode = Enum.ApplyStrokeMode.Border,
+                        LineJoinMode = Enum.LineJoinMode.Miter,
+                        Color = Library.Theme["Border"],
+                        BorderOffset = UDim.new(0, 1)
+                    }):AddToTheme({Color = "Border"})
+
+                    Library:Create("UIStroke", {
+                        Name = "\0",
+                        Parent = KBMFrame.Instance,
+                        ApplyStrokeMode = Enum.ApplyStrokeMode.Border,
+                        LineJoinMode = Enum.LineJoinMode.Miter,
+                        Color = Library.Theme["Outline"]
+                    }):AddToTheme({Color = "Outline"})
+
+                    KBMFrame:MakeDraggable()
+
+                    local function MakeKeyCell(Label, Pos)
+                        local KeyOutline = Library:Create("Frame", {
+                            Name = "\0",
+                            Parent = KBMFrame.Instance,
+                            Position = Pos,
+                            Size = UDim2.new(0, 26, 0, 26),
+                            BorderSizePixel = 0,
+                            BackgroundColor3 = Library.Theme["Border"]
+                        }):AddToTheme({BackgroundColor3 = "Border"})
+
+                        local KeyInner = Library:Create("Frame", {
+                            Name = "\0",
+                            Parent = KeyOutline.Instance,
+                            Position = UDim2.new(0, 1, 0, 1),
+                            Size = UDim2.new(1, -2, 1, -2),
+                            BorderSizePixel = 0,
+                            BackgroundColor3 = Library.Theme["Element 2"]
+                        }):AddToTheme({BackgroundColor3 = "Element 2"})
+
+                        Library:Create("TextLabel", {
+                            Name = "\0",
+                            Parent = KeyInner.Instance,
+                            FontFace = Library.Font,
+                            TextSize = Library.FontSize,
+                            Text = Label,
+                            TextColor3 = Library.Theme["Text"],
+                            BackgroundTransparency = 1,
+                            BorderSizePixel = 0,
+                            Size = UDim2.new(1, 0, 1, 0),
+                            TextXAlignment = Enum.TextXAlignment.Center,
+                            TextYAlignment = Enum.TextYAlignment.Center
+                        }):AddToTheme({TextColor3 = "Text"})
+
+                        return KeyInner
+                    end
+
+                    local wKey = MakeKeyCell("W", UDim2.new(0, 36, 0, 8))
+                    local aKey = MakeKeyCell("A", UDim2.new(0, 8, 0, 36))
+                    local sKey = MakeKeyCell("S", UDim2.new(0, 36, 0, 36))
+                    local dKey = MakeKeyCell("D", UDim2.new(0, 64, 0, 36))
+
+                    local MouseCircleFrame = Library:Create("Frame", {
+                        Name = "\0",
+                        Parent = KBMFrame.Instance,
+                        Position = UDim2.new(0, 102, 0, 8),
+                        Size = UDim2.new(0, 40, 0, 40),
+                        BorderSizePixel = 0,
+                        BackgroundTransparency = 1
+                    })
+
+                    Library:Create("UICorner", {
+                        Name = "\0",
+                        Parent = MouseCircleFrame.Instance,
+                        CornerRadius = UDim.new(1, 0)
+                    })
+
+                    Library:Create("UIStroke", {
+                        Name = "\0",
+                        Parent = MouseCircleFrame.Instance,
+                        ApplyStrokeMode = Enum.ApplyStrokeMode.Border,
+                        Color = Library.Theme["Accent"],
+                        Thickness = 1
+                    }):AddToTheme({Color = "Accent"})
+
+                    local MoveLine = Library:Create("Frame", {
+                        Name = "\0",
+                        Parent = MouseCircleFrame.Instance,
+                        AnchorPoint = Vector2.new(0.5, 1),
+                        Position = UDim2.new(0.5, 0, 0.5, 0),
+                        Size = UDim2.new(0, 1, 0, 8),
+                        BorderSizePixel = 0,
+                        BackgroundColor3 = Library.Theme["Accent"]
+                    }):AddToTheme({BackgroundColor3 = "Accent"})
+
+                    local LMBIndicator = Library:Create("Frame", {
+                        Name = "\0",
+                        Parent = KBMFrame.Instance,
+                        Position = UDim2.new(0, 102, 0, 58),
+                        Size = UDim2.new(0, 18, 0, 12),
+                        BorderSizePixel = 0,
+                        BackgroundColor3 = Library.Theme["Element 2"]
+                    }):AddToTheme({BackgroundColor3 = "Element 2"})
+
+                    local RMBIndicator = Library:Create("Frame", {
+                        Name = "\0",
+                        Parent = KBMFrame.Instance,
+                        Position = UDim2.new(0, 124, 0, 58),
+                        Size = UDim2.new(0, 18, 0, 12),
+                        BorderSizePixel = 0,
+                        BackgroundColor3 = Library.Theme["Element 2"]
+                    }):AddToTheme({BackgroundColor3 = "Element 2"})
+
+                    local SpaceOutline = Library:Create("Frame", {
+                        Name = "\0",
+                        Parent = KBMFrame.Instance,
+                        Position = UDim2.new(0, 8, 0, 74),
+                        Size = UDim2.new(0, 82, 0, 14),
+                        BorderSizePixel = 0,
+                        BackgroundColor3 = Library.Theme["Border"]
+                    }):AddToTheme({BackgroundColor3 = "Border"})
+
+                    local SpaceInner = Library:Create("Frame", {
+                        Name = "\0",
+                        Parent = SpaceOutline.Instance,
+                        Position = UDim2.new(0, 1, 0, 1),
+                        Size = UDim2.new(1, -2, 1, -2),
+                        BorderSizePixel = 0,
+                        BackgroundColor3 = Library.Theme["Element 2"]
+                    }):AddToTheme({BackgroundColor3 = "Element 2"})
+
+                    Library:Create("TextLabel", {
+                        Name = "\0",
+                        Parent = SpaceInner.Instance,
+                        FontFace = Library.Font,
+                        TextSize = Library.FontSize,
+                        Text = "space",
+                        TextColor3 = Library.Theme["Text"],
+                        BackgroundTransparency = 1,
+                        BorderSizePixel = 0,
+                        Size = UDim2.new(1, 0, 1, 0),
+                        TextXAlignment = Enum.TextXAlignment.Center,
+                        TextYAlignment = Enum.TextYAlignment.Center
+                    }):AddToTheme({TextColor3 = "Text"})
+
+                    local function SetKeyActive(Inner, Active)
+                        if Active then
+                            Inner:ChangeItemTheme({BackgroundColor3 = "Accent"})
+                            Inner:Tween({BackgroundColor3 = Library.Theme["Accent"]})
+                        else
+                            Inner:ChangeItemTheme({BackgroundColor3 = "Element 2"})
+                            Inner:Tween({BackgroundColor3 = Library.Theme["Element 2"]})
+                        end
+                    end
+
+                    Library:Connect(UserInputService.InputBegan, function(Input, GPE)
+                        if GPE then return end
+                        if Input.UserInputType == Enum.UserInputType.Keyboard then
+                            if Input.KeyCode == Enum.KeyCode.W then SetKeyActive(wKey, true)
+                            elseif Input.KeyCode == Enum.KeyCode.A then SetKeyActive(aKey, true)
+                            elseif Input.KeyCode == Enum.KeyCode.S then SetKeyActive(sKey, true)
+                            elseif Input.KeyCode == Enum.KeyCode.D then SetKeyActive(dKey, true)
+                            elseif Input.KeyCode == Enum.KeyCode.Space then SetKeyActive(SpaceInner, true)
+                            end
+                        elseif Input.UserInputType == Enum.UserInputType.MouseButton1 then
+                            SetKeyActive(LMBIndicator, true)
+                        elseif Input.UserInputType == Enum.UserInputType.MouseButton2 then
+                            SetKeyActive(RMBIndicator, true)
+                        end
+                    end)
+
+                    Library:Connect(UserInputService.InputEnded, function(Input, GPE)
+                        if GPE then return end
+                        if Input.UserInputType == Enum.UserInputType.Keyboard then
+                            if Input.KeyCode == Enum.KeyCode.W then SetKeyActive(wKey, false)
+                            elseif Input.KeyCode == Enum.KeyCode.A then SetKeyActive(aKey, false)
+                            elseif Input.KeyCode == Enum.KeyCode.S then SetKeyActive(sKey, false)
+                            elseif Input.KeyCode == Enum.KeyCode.D then SetKeyActive(dKey, false)
+                            elseif Input.KeyCode == Enum.KeyCode.Space then SetKeyActive(SpaceInner, false)
+                            end
+                        elseif Input.UserInputType == Enum.UserInputType.MouseButton1 then
+                            SetKeyActive(LMBIndicator, false)
+                        elseif Input.UserInputType == Enum.UserInputType.MouseButton2 then
+                            SetKeyActive(RMBIndicator, false)
+                        end
+                    end)
+
+                    local LastMousePos = Vector2.new(0, 0)
+                    Library:Connect(RunService.RenderStepped, function()
+                        if not KBMFrame.Instance.Visible then return end
+                        local CurrentPos = Vector2.new(Mouse.X, Mouse.Y)
+                        local Delta = CurrentPos - LastMousePos
+                        LastMousePos = CurrentPos
+
+                        if Delta.Magnitude > 0.5 then
+                            local Angle = math.deg(math.atan2(Delta.X, -Delta.Y))
+                            MoveLine.Instance.Rotation = Angle
+                            local LineLen = math.clamp(Delta.Magnitude * 1.5, 2, 16)
+                            MoveLine:Tween({Size = UDim2.new(0, 1, 0, LineLen)}, TweenInfo.new(0.08))
+                        else
+                            MoveLine:Tween({Size = UDim2.new(0, 1, 0, 2)}, TweenInfo.new(0.08))
+                        end
+                    end)
+
+                    KBMSection:Toggle({
+                        Name = "Show KBM Visualiser",
+                        Flag = "KBMVisualiser",
+                        Default = false,
+                        Callback = function(Value)
+                            KBMFrame.Instance.Visible = Value
+                        end
+                    })
+
+                    KBMSection:Label({Name = "Key Colour"}):Colorpicker({
+                        Flag = "KBMKeyColour",
+                        Default = Library.Theme["Accent"],
+                        Callback = function(Value)
+                            Library.Theme["Accent"] = Value
+                            Library:ChangeTheme("Accent", Value)
+                        end
+                    })
+                end
+
                 local AutoloadContent = readfile(Library.Directory .. "/autoload.json")
 
                 if AutoloadContent ~= "" then 
@@ -4993,4 +5118,3 @@ local Library = {
 end
 
 getgenv().Library = Library
-return Library 
