@@ -2202,10 +2202,6 @@ local Library = {
             Library.KeyList = KeybindList
             Self.KeybindList = KeybindList
         
-            function KeybindList:SetVisibility(Bool)
-                Items["KeybindList"].Instance.Visible = Bool
-            end
-        
             -- Track whether the user has manually hidden the keybind list
             local _keybindListManuallyHidden = false
 
