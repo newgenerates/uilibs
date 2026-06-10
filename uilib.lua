@@ -2708,27 +2708,38 @@ local Library = {
                     TextXAlignment = Enum.TextXAlignment.Center,
                     Parent = Page.Window.Items["Pages"].Instance,
                     TextColor3 = Library.Theme["Inactive Text"],
-                    Text = Page.Icon and "" or Page.Name,
+                    Text = Page.Name,
                     AutoButtonColor = false,
-                    Size = Page.Icon and UDim2.new(0, 24, 0, 20) or UDim2.new(0, 0, 0, 20),
-                    BackgroundTransparency = 1,
+                    Size = UDim2.new(0, 0, 1, -6),
+                    BackgroundColor3 = Library.Theme["Inline"],
+                    BackgroundTransparency = 0,
                     BorderSizePixel = 0,
-                    AutomaticSize = Page.Icon and Enum.AutomaticSize.None or Enum.AutomaticSize.X
-                }):AddToTheme({TextColor3 = 'Inactive Text'})
+                    AutomaticSize = Enum.AutomaticSize.X
+                }):AddToTheme({TextColor3 = 'Inactive Text', BackgroundColor3 = 'Inline'})
 
-                if Page.Icon then
-                    Items["IconImage"] = Library:Create("ImageLabel", {
-                        Name = "\0",
-                        Parent = Items["Inactive"].Instance,
-                        Image = Page.Icon,
-                        ImageColor3 = Library.Theme["Inactive Text"],
-                        BackgroundTransparency = 1,
-                        AnchorPoint = Vector2.new(0.5, 0.5),
-                        Position = UDim2.new(0.5, 0, 0.5, 0),
-                        Size = UDim2.new(0, 14, 0, 14),
-                        BorderSizePixel = 0
-                    }):AddToTheme({ImageColor3 = 'Inactive Text'})
-                end        
+                Library:Create("UICorner", {
+                    Name = "\0",
+                    Parent = Items["Inactive"].Instance,
+                    CornerRadius = UDim.new(0, 4)
+                })
+
+                Library:Create("UIPadding", {
+                    Name = "\0",
+                    Parent = Items["Inactive"].Instance,
+                    PaddingLeft = UDim.new(0, 9),
+                    PaddingRight = UDim.new(0, 9)
+                })
+
+                Items["ActiveBar"] = Library:Create("Frame", {
+                    Name = "\0",
+                    Parent = Items["Inactive"].Instance,
+                    AnchorPoint = Vector2.new(0.5, 1),
+                    Position = UDim2.new(0.5, 0, 1, 3),
+                    Size = UDim2.new(1, -8, 0, 2),
+                    BorderSizePixel = 0,
+                    BackgroundTransparency = 1,
+                    BackgroundColor3 = Library.Theme["Accent"]
+                }):AddToTheme({BackgroundColor3 = 'Accent'})        
                 
                 Items["Page"] = Library:Create("Frame", {
                     Name = "\0",
@@ -2814,17 +2825,11 @@ local Library = {
             end
 
             Items["Inactive"]:OnHover(function()
-                if Page.Active then return end 
-                Items["Inactive"]:Tween({TextColor3 = Library.Theme.Text})
-                if Items["IconImage"] then
-                    Items["IconImage"]:Tween({ImageColor3 = Library.Theme.Text})
-                end
+                if Page.Active then return end
+                Items["Inactive"]:Tween({TextColor3 = Library.Theme.Text, BackgroundColor3 = Library.Theme["Element 2"]})
             end, function()
-                if Page.Active then return end 
-                Items["Inactive"]:Tween({TextColor3 = Library.Theme["Inactive Text"]})
-                if Items["IconImage"] then
-                    Items["IconImage"]:Tween({ImageColor3 = Library.Theme["Inactive Text"]})
-                end
+                if Page.Active then return end
+                Items["Inactive"]:Tween({TextColor3 = Library.Theme["Inactive Text"], BackgroundColor3 = Library.Theme["Inline"]})
             end)
 
             function Page:Turn()
@@ -2846,12 +2851,10 @@ local Library = {
                 
                 if Old then 
                     Old.Items["Page"].Instance.Position = UDim2.new(0, 0, 0, 0)
-                    Old.Items["Inactive"]:ChangeItemTheme({TextColor3 = "Inactive Text"})
+                    Old.Items["Inactive"]:ChangeItemTheme({TextColor3 = "Inactive Text", BackgroundColor3 = "Inline"})
                     Old.Items["Inactive"].Instance.TextColor3 = Library.Theme["Inactive Text"]
-                    if Old.Items["IconImage"] then
-                        Old.Items["IconImage"]:ChangeItemTheme({ImageColor3 = "Inactive Text"})
-                        Old.Items["IconImage"].Instance.ImageColor3 = Library.Theme["Inactive Text"]
-                    end
+                    Old.Items["Inactive"].Instance.BackgroundColor3 = Library.Theme["Inline"]
+                    Old.Items["ActiveBar"].Instance.BackgroundTransparency = 1
                     Old.Items["Page"].Instance.Visible = false
                     Old.Items["Page"].Instance.Parent = Library.UnusedHolder.Instance
                     Old.Active = false
@@ -2861,12 +2864,10 @@ local Library = {
                 Items["Page"].Instance.Parent = Page.Window.Items["Content"].Instance
                 Items["Page"].Instance.Visible = true
 
-                Items["Inactive"]:ChangeItemTheme({TextColor3 = "Accent"})
+                Items["Inactive"]:ChangeItemTheme({TextColor3 = "Accent", BackgroundColor3 = "Element"})
                 Items["Inactive"].Instance.TextColor3 = Library.Theme["Accent"]
-                if Items["IconImage"] then
-                    Items["IconImage"]:ChangeItemTheme({ImageColor3 = "Accent"})
-                    Items["IconImage"].Instance.ImageColor3 = Library.Theme["Accent"]
-                end
+                Items["Inactive"].Instance.BackgroundColor3 = Library.Theme["Element"]
+                Items["ActiveBar"].Instance.BackgroundTransparency = 0
 
                 Page.Window.Current = Page
                 Page.Active = true
