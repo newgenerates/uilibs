@@ -495,7 +495,7 @@ local Library = {
         local StartPosition = nil 
         local StartSize = nil
         
-        local EdgeThickness = 2
+        local EdgeThickness = 8
 
         local MakeEdge = function(Name, Position, Size)
             local Button = Library:Create("TextButton", {
@@ -539,6 +539,13 @@ local Library = {
                 UDim2.new(0, 0, 1, -EdgeThickness), 
                 UDim2.new(1, 0, 0, EdgeThickness)), 
                 Side = "B"
+            },
+
+            {Button = MakeEdge(
+                "BottomRight",
+                UDim2.new(1, -EdgeThickness, 1, -EdgeThickness),
+                UDim2.new(0, EdgeThickness, 0, EdgeThickness)),
+                Side = "BR"
             },
         }
 
@@ -602,6 +609,9 @@ local Library = {
                 y = StartPosition.Y + dy
                 h = StartSize.Y - dy
             elseif CurrentSide == "B" then
+                h = StartSize.Y + dy
+            elseif CurrentSide == "BR" then
+                w = StartSize.X + dx
                 h = StartSize.Y + dy
             end
         
@@ -2513,7 +2523,7 @@ local Library = {
                 }):AddToTheme({BackgroundColor3 = 'Border'})
 
                 Items["Outline"]:MakeDraggable()
-                Items["Outline"]:MakeResizeable(Vector2.new(Items["Outline"].Instance.AbsoluteSize.X, Items["Outline"].Instance.AbsoluteSize.Y))
+                Items["Outline"]:MakeResizeable(Vector2.new(400, Items["Outline"].Instance.AbsoluteSize.Y))
                 
                 Items["Outline2"] = Library:Create("Frame", {
                     Name = "\0",
@@ -2890,19 +2900,38 @@ local Library = {
                     BorderOffset = UDim.new(0, 1)
                 }):AddToTheme({Color = 'Border'})
                 
+                Items["Header"] = Library:Create("Frame", {
+                    Name = "\0",
+                    Parent = Items["Section"].Instance,
+                    BackgroundTransparency = 1,
+                    Position = UDim2.new(0, 8, 0, -2),
+                    Size = UDim2.new(1, -16, 0, 0),
+                    BorderSizePixel = 0,
+                    AutomaticSize = Enum.AutomaticSize.Y,
+                })
+
+                Library:Create("UIListLayout", {
+                    Name = "\0",
+                    Parent = Items["Header"].Instance,
+                    FillDirection = Enum.FillDirection.Horizontal,
+                    VerticalAlignment = Enum.VerticalAlignment.Center,
+                    Padding = UDim.new(0, 4),
+                    SortOrder = Enum.SortOrder.LayoutOrder,
+                })
+
                 Items["Text"] = Library:Create("TextLabel", {
                     Name = "\0",
                     FontFace = Library.Font,
                     TextSize = Library.FontSize,
                     TextXAlignment = Enum.TextXAlignment.Left,
-                    Parent = Items["Section"].Instance,
+                    Parent = Items["Header"].Instance,
                     TextColor3 = Library.Theme["Text"],
                     Text = Section.Name,
-                    Position = UDim2.new(0, 9, 0, -2),
                     Size = UDim2.new(0, 0, 0, 1),
                     BorderSizePixel = 0,
                     AutomaticSize = Enum.AutomaticSize.X,
-                    BackgroundColor3 = Library.Theme["Background"]
+                    BackgroundColor3 = Library.Theme["Background"],
+                    LayoutOrder = 1,
                 }):AddToTheme({BackgroundColor3 = 'Background'})
                 
                 Library:Create("UIPadding", {
@@ -2911,6 +2940,20 @@ local Library = {
                     PaddingRight = UDim.new(0, 4),
                     PaddingLeft = UDim.new(0, 4)
                 })
+
+                Items["CollapseBtn"] = Library:Create("TextButton", {
+                    Name = "\0",
+                    Parent = Items["Header"].Instance,
+                    Size = UDim2.new(0, 12, 0, 12),
+                    BackgroundTransparency = 1,
+                    BorderSizePixel = 0,
+                    Font = Enum.Font.GothamBold,
+                    TextSize = 8,
+                    TextColor3 = Library.Theme["Inactive Text"],
+                    Text = "▲",
+                    LayoutOrder = 2,
+                    ZIndex = 5,
+                }):AddToTheme({TextColor3 = 'Inactive Text'})
                 
                 Items["Content"] = Library:Create("Frame", {
                     Name = "\0",
@@ -2934,6 +2977,18 @@ local Library = {
                     Parent = Items["Section"].Instance,
                     PaddingBottom = UDim.new(0, 8)
                 })                
+
+                local _collapsed = false
+                local function toggleSectionCollapse()
+                    _collapsed = not _collapsed
+                    Items["Content"].Instance.Visible = not _collapsed
+                    Items["CollapseBtn"].Instance.Text = _collapsed and "▼" or "▲"
+                    local pad = Items["Section"].Instance:FindFirstChildWhichIsA("UIPadding")
+                    if pad then
+                        pad.PaddingBottom = _collapsed and UDim.new(0, 2) or UDim.new(0, 8)
+                    end
+                end
+                Items["CollapseBtn"].Instance.MouseButton1Click:Connect(toggleSectionCollapse)
 
                 Section.Items = Items
             end 
