@@ -2905,18 +2905,8 @@ local Library = {
                     Parent = Items["Section"].Instance,
                     BackgroundTransparency = 1,
                     Position = UDim2.new(0, 8, 0, -2),
-                    Size = UDim2.new(1, -16, 0, 0),
+                    Size = UDim2.new(1, -16, 0, 16),
                     BorderSizePixel = 0,
-                    AutomaticSize = Enum.AutomaticSize.Y,
-                })
-
-                Library:Create("UIListLayout", {
-                    Name = "\0",
-                    Parent = Items["Header"].Instance,
-                    FillDirection = Enum.FillDirection.Horizontal,
-                    VerticalAlignment = Enum.VerticalAlignment.Center,
-                    Padding = UDim.new(0, 4),
-                    SortOrder = Enum.SortOrder.LayoutOrder,
                 })
 
                 Items["Text"] = Library:Create("TextLabel", {
@@ -2924,14 +2914,15 @@ local Library = {
                     FontFace = Library.Font,
                     TextSize = Library.FontSize,
                     TextXAlignment = Enum.TextXAlignment.Left,
+                    TextYAlignment = Enum.TextYAlignment.Center,
                     Parent = Items["Header"].Instance,
                     TextColor3 = Library.Theme["Text"],
                     Text = Section.Name,
-                    Size = UDim2.new(0, 0, 0, 1),
+                    Size = UDim2.new(0, 0, 1, 0),
+                    Position = UDim2.new(0, 4, 0, 0),
                     BorderSizePixel = 0,
                     AutomaticSize = Enum.AutomaticSize.X,
                     BackgroundColor3 = Library.Theme["Background"],
-                    LayoutOrder = 1,
                 }):AddToTheme({BackgroundColor3 = 'Background'})
                 
                 Library:Create("UIPadding", {
@@ -2941,17 +2932,18 @@ local Library = {
                     PaddingLeft = UDim.new(0, 4)
                 })
 
-                Items["CollapseBtn"] = Library:Create("TextButton", {
+                 Items["CollapseBtn"] = Library:Create("TextButton", {
                     Name = "\0",
                     Parent = Items["Header"].Instance,
-                    Size = UDim2.new(0, 16, 0, 16),
+                    Size = UDim2.new(0, 24, 0, 24),
+                    Position = UDim2.new(1, -4, 0.5, 0),
+                    AnchorPoint = Vector2.new(1, 0.5),
                     BackgroundTransparency = 1,
                     BorderSizePixel = 0,
                     Font = Enum.Font.GothamBold,
-                    TextSize = 12,
+                    TextSize = 18,
                     TextColor3 = Library.Theme["Inactive Text"],
                     Text = "▲",
-                    LayoutOrder = 2,
                     ZIndex = 5,
                 }):AddToTheme({TextColor3 = 'Inactive Text'})
                 
@@ -3031,6 +3023,28 @@ local Library = {
                     end
                 end
                 Items["CollapseBtn"].Instance.MouseButton1Click:Connect(toggleSectionCollapse)
+
+                -- Section tracking for collapse buttons
+                Section.Page.Sections = Section.Page.Sections or {}
+                
+                -- Filter out any sections that have been destroyed
+                local activeSections = {}
+                for _, sec in ipairs(Section.Page.Sections) do
+                    if sec.Items["Section"] and sec.Items["Section"].Instance and sec.Items["Section"].Instance.Parent then
+                        table.insert(activeSections, sec)
+                    end
+                end
+                table.insert(activeSections, Section)
+                Section.Page.Sections = activeSections
+                
+                local isSettingsPage = string.lower(Section.Page.Name) == "settings"
+                local shouldShowCollapse = not isSettingsPage and #Section.Page.Sections > 2
+                
+                for _, sec in ipairs(Section.Page.Sections) do
+                    if sec.Items["CollapseBtn"] then
+                        sec.Items["CollapseBtn"].Instance.Visible = shouldShowCollapse
+                    end
+                end
 
                 Section.Items = Items
             end 
