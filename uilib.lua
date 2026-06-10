@@ -2944,11 +2944,11 @@ local Library = {
                 Items["CollapseBtn"] = Library:Create("TextButton", {
                     Name = "\0",
                     Parent = Items["Header"].Instance,
-                    Size = UDim2.new(0, 12, 0, 12),
+                    Size = UDim2.new(0, 16, 0, 16),
                     BackgroundTransparency = 1,
                     BorderSizePixel = 0,
                     Font = Enum.Font.GothamBold,
-                    TextSize = 8,
+                    TextSize = 12,
                     TextColor3 = Library.Theme["Inactive Text"],
                     Text = "▲",
                     LayoutOrder = 2,
@@ -2962,6 +2962,7 @@ local Library = {
                     Position = UDim2.new(0, 8, 0, 10),
                     Size = UDim2.new(1, -16, 0, 0),
                     BorderSizePixel = 0,
+                    ClipsDescendants = true,
                     AutomaticSize = Enum.AutomaticSize.Y
                 })
                 
@@ -2979,13 +2980,54 @@ local Library = {
                 })                
 
                 local _collapsed = false
+                local _animating = false
                 local function toggleSectionCollapse()
+                    if _animating then return end
                     _collapsed = not _collapsed
-                    Items["Content"].Instance.Visible = not _collapsed
+                    _animating = true
                     Items["CollapseBtn"].Instance.Text = _collapsed and "▼" or "▲"
                     local pad = Items["Section"].Instance:FindFirstChildWhichIsA("UIPadding")
-                    if pad then
-                        pad.PaddingBottom = _collapsed and UDim.new(0, 2) or UDim.new(0, 8)
+                    
+                    if _collapsed then
+                        Items["Content"].Instance.AutomaticSize = Enum.AutomaticSize.None
+                        local tween = Items["Content"]:Tween({
+                            Size = UDim2.new(1, -16, 0, 0)
+                        }, TweenInfo.new(0.35, Enum.EasingStyle.Quart, Enum.EasingDirection.Out))
+                        if pad then
+                            Library:Tween({PaddingBottom = UDim.new(0, 2)}, TweenInfo.new(0.35, Enum.EasingStyle.Quart, Enum.EasingDirection.Out), pad)
+                        end
+                        if tween then
+                            tween.Completed:Once(function()
+                                Items["Content"].Instance.Visible = false
+                                _animating = false
+                            end)
+                        else
+                            Items["Content"].Instance.Visible = false
+                            _animating = false
+                        end
+                    else
+                        Items["Content"].Instance.Visible = true
+                        Items["Content"].Instance.Size = UDim2.new(1, -16, 0, 0)
+                        Items["Content"].Instance.AutomaticSize = Enum.AutomaticSize.Y
+                        RunService.Heartbeat:Wait()
+                        local targetHeight = Items["Content"].Instance.AbsoluteSize.Y
+                        Items["Content"].Instance.AutomaticSize = Enum.AutomaticSize.None
+                        Items["Content"].Instance.Size = UDim2.new(1, -16, 0, 0)
+                        local tween = Items["Content"]:Tween({
+                            Size = UDim2.new(1, -16, 0, targetHeight)
+                        }, TweenInfo.new(0.35, Enum.EasingStyle.Quart, Enum.EasingDirection.Out))
+                        if pad then
+                            Library:Tween({PaddingBottom = UDim.new(0, 8)}, TweenInfo.new(0.35, Enum.EasingStyle.Quart, Enum.EasingDirection.Out), pad)
+                        end
+                        if tween then
+                            tween.Completed:Once(function()
+                                Items["Content"].Instance.AutomaticSize = Enum.AutomaticSize.Y
+                                _animating = false
+                            end)
+                        else
+                            Items["Content"].Instance.AutomaticSize = Enum.AutomaticSize.Y
+                            _animating = false
+                        end
                     end
                 end
                 Items["CollapseBtn"].Instance.MouseButton1Click:Connect(toggleSectionCollapse)
