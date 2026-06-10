@@ -2897,8 +2897,8 @@ local Library = {
                     Position = UDim2.new(0, 4, 0, 0),
                     BorderSizePixel = 0,
                     AutomaticSize = Enum.AutomaticSize.X,
-                    BackgroundColor3 = Library.Theme["Background"],
-                }):AddToTheme({BackgroundColor3 = 'Background'})
+                    BackgroundTransparency = 1,
+                }):AddToTheme({TextColor3 = 'Text'})
                 
                 Library:Create("UIPadding", {
                     Name = "\0",
