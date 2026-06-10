@@ -481,7 +481,7 @@ local Library = {
         return Dragging
     end
 
-    Library.MakeResizeable = function(Self, Minimum)
+    Library.MakeResizeable = function(Self, Minimum, XAxisOnly)
         if not Self.Instance then 
             return
         end
@@ -527,27 +527,28 @@ local Library = {
                 UDim2.new(0, EdgeThickness, 1, 0)), 
                 Side = "R"
             },
+        }
 
-            {Button = MakeEdge(
+        -- Only add vertical resize edges if not X-axis only
+        if not XAxisOnly then
+            table.insert(Edges, {Button = MakeEdge(
                 "Top", UDim2.new(0, 0, 0, 0), 
                 UDim2.new(1, 0, 0, EdgeThickness)), 
                 Side = "T"
-            },
-
-            {Button = MakeEdge(
+            })
+            table.insert(Edges, {Button = MakeEdge(
                 "Bottom", 
                 UDim2.new(0, 0, 1, -EdgeThickness), 
                 UDim2.new(1, 0, 0, EdgeThickness)), 
                 Side = "B"
-            },
-
-            {Button = MakeEdge(
+            })
+            table.insert(Edges, {Button = MakeEdge(
                 "BottomRight",
                 UDim2.new(1, -EdgeThickness, 1, -EdgeThickness),
                 UDim2.new(0, EdgeThickness, 0, EdgeThickness)),
                 Side = "BR"
-            },
-        }
+            })
+        end
 
         local BeginResizing = function(Side)
             Resizing = true 
@@ -2205,6 +2206,14 @@ local Library = {
                 Items["KeybindList"].Instance.Visible = Bool
             end
         
+            -- Track whether the user has manually hidden the keybind list
+            local _keybindListManuallyHidden = false
+
+            function KeybindList:SetVisibility(Bool)
+                _keybindListManuallyHidden = not Bool
+                Items["KeybindList"].Instance.Visible = Bool
+            end
+
             function KeybindList:UpdateSize()
                 local Width = 0
                 local Y = 6
@@ -2231,18 +2240,15 @@ local Library = {
                 Items["Inline"]:Tween({Size = UDim2.new(0, Width + 14, 0, TargetHeight)}, KeybindTweenInfo)
                 Items["KeybindList"]:Tween({Size = UDim2.new(0, Width + 34, 0, TargetHeight + 28)}, KeybindTweenInfo)
 
-                local ActiveKeys = { }
-
-                for Index, Value in KeybindList.Keys do
-                    if Value.Showing then
-                        table.insert(ActiveKeys, Value.Object.Instance.Text)
+                -- Only auto-show if the user hasn't manually hidden the list
+                if not _keybindListManuallyHidden then
+                    local ActiveKeys = {}
+                    for Index, Value in KeybindList.Keys do
+                        if Value.Showing then
+                            table.insert(ActiveKeys, Value.Object.Instance.Text)
+                        end
                     end
-                end
-        
-                if #ActiveKeys == 0 then 
-                    Items["KeybindList"].Instance.Visible = false
-                else
-                    Items["KeybindList"].Instance.Visible = true
+                    Items["KeybindList"].Instance.Visible = #ActiveKeys > 0
                 end
             end
         
@@ -2523,7 +2529,7 @@ local Library = {
                 }):AddToTheme({BackgroundColor3 = 'Border'})
 
                 Items["Outline"]:MakeDraggable()
-                Items["Outline"]:MakeResizeable(Vector2.new(400, Items["Outline"].Instance.AbsoluteSize.Y))
+                Items["Outline"]:MakeResizeable(Vector2.new(400, Items["Outline"].Instance.AbsoluteSize.Y), true)
                 
                 Items["Outline2"] = Library:Create("Frame", {
                     Name = "\0",
@@ -2932,20 +2938,31 @@ local Library = {
                     PaddingLeft = UDim.new(0, 4)
                 })
 
-                 Items["CollapseBtn"] = Library:Create("TextButton", {
+                -- Subtab holder (shown next to section title, e.g. "aimbot | settings")
+                Items["SubtabHolder"] = Library:Create("Frame", {
                     Name = "\0",
                     Parent = Items["Header"].Instance,
-                    Size = UDim2.new(0, 24, 0, 24),
-                    Position = UDim2.new(1, -4, 0.5, 0),
-                    AnchorPoint = Vector2.new(1, 0.5),
                     BackgroundTransparency = 1,
+                    Position = UDim2.new(0, 0, 0, 0),
+                    Size = UDim2.new(1, 0, 1, 0),
                     BorderSizePixel = 0,
-                    Font = Enum.Font.GothamBold,
-                    TextSize = 18,
-                    TextColor3 = Library.Theme["Inactive Text"],
-                    Text = "▲",
-                    ZIndex = 5,
-                }):AddToTheme({TextColor3 = 'Inactive Text'})
+                    AutomaticSize = Enum.AutomaticSize.None,
+                    Visible = false,
+                })
+
+                Library:Create("UIListLayout", {
+                    Name = "\0",
+                    Parent = Items["SubtabHolder"].Instance,
+                    FillDirection = Enum.FillDirection.Horizontal,
+                    VerticalAlignment = Enum.VerticalAlignment.Center,
+                    HorizontalAlignment = Enum.HorizontalAlignment.Left,
+                    Padding = UDim.new(0, 0),
+                    SortOrder = Enum.SortOrder.LayoutOrder
+                })
+
+                Section._subtabs = {}
+                Section._activeSubtab = nil
+                Section._subtabFrames = {}
                 
                 Items["Content"] = Library:Create("Frame", {
                     Name = "\0",
@@ -2969,88 +2986,111 @@ local Library = {
                     Name = "\0",
                     Parent = Items["Section"].Instance,
                     PaddingBottom = UDim.new(0, 8)
-                })                
-
-                local _collapsed = false
-                local _animating = false
-                local function toggleSectionCollapse()
-                    if _animating then return end
-                    _collapsed = not _collapsed
-                    _animating = true
-                    Items["CollapseBtn"].Instance.Text = _collapsed and "▼" or "▲"
-                    local pad = Items["Section"].Instance:FindFirstChildWhichIsA("UIPadding")
-                    
-                    if _collapsed then
-                        Items["Content"].Instance.AutomaticSize = Enum.AutomaticSize.None
-                        local tween = Items["Content"]:Tween({
-                            Size = UDim2.new(1, -16, 0, 0)
-                        }, TweenInfo.new(0.35, Enum.EasingStyle.Quart, Enum.EasingDirection.Out))
-                        if pad then
-                            Library:Tween({PaddingBottom = UDim.new(0, 2)}, TweenInfo.new(0.35, Enum.EasingStyle.Quart, Enum.EasingDirection.Out), pad)
-                        end
-                        if tween then
-                            tween.Completed:Once(function()
-                                Items["Content"].Instance.Visible = false
-                                _animating = false
-                            end)
-                        else
-                            Items["Content"].Instance.Visible = false
-                            _animating = false
-                        end
-                    else
-                        Items["Content"].Instance.Visible = true
-                        Items["Content"].Instance.Size = UDim2.new(1, -16, 0, 0)
-                        Items["Content"].Instance.AutomaticSize = Enum.AutomaticSize.Y
-                        RunService.Heartbeat:Wait()
-                        local targetHeight = Items["Content"].Instance.AbsoluteSize.Y
-                        Items["Content"].Instance.AutomaticSize = Enum.AutomaticSize.None
-                        Items["Content"].Instance.Size = UDim2.new(1, -16, 0, 0)
-                        local tween = Items["Content"]:Tween({
-                            Size = UDim2.new(1, -16, 0, targetHeight)
-                        }, TweenInfo.new(0.35, Enum.EasingStyle.Quart, Enum.EasingDirection.Out))
-                        if pad then
-                            Library:Tween({PaddingBottom = UDim.new(0, 8)}, TweenInfo.new(0.35, Enum.EasingStyle.Quart, Enum.EasingDirection.Out), pad)
-                        end
-                        if tween then
-                            tween.Completed:Once(function()
-                                Items["Content"].Instance.AutomaticSize = Enum.AutomaticSize.Y
-                                _animating = false
-                            end)
-                        else
-                            Items["Content"].Instance.AutomaticSize = Enum.AutomaticSize.Y
-                            _animating = false
-                        end
-                    end
-                end
-                Items["CollapseBtn"].Instance.MouseButton1Click:Connect(toggleSectionCollapse)
-
-                -- Section tracking for collapse buttons
-                Section.Page.Sections = Section.Page.Sections or {}
-                
-                -- Filter out any sections that have been destroyed
-                local activeSections = {}
-                for _, sec in ipairs(Section.Page.Sections) do
-                    if sec.Items["Section"] and sec.Items["Section"].Instance and sec.Items["Section"].Instance.Parent then
-                        table.insert(activeSections, sec)
-                    end
-                end
-                table.insert(activeSections, Section)
-                Section.Page.Sections = activeSections
-                
-                local isSettingsPage = string.lower(Section.Page.Name) == "settings"
-                local shouldShowCollapse = not isSettingsPage and #Section.Page.Sections > 2
-                
-                for _, sec in ipairs(Section.Page.Sections) do
-                    if sec.Items["CollapseBtn"] then
-                        sec.Items["CollapseBtn"].Instance.Visible = shouldShowCollapse
-                    end
-                end
+                })
 
                 Section.Items = Items
             end 
 
             function Section:SetText(Text)
                 Items["Text"].Instance.Text = tostring(Text)
+            end
+
+            -- Subtab system: Section:AddSubtab("name") returns a frame to add elements into
+            -- Usage: local myFrame = mySection:AddSubtab("aimbot")
+            -- The section header will show "aimbot | settings | ..." style tabs
+            function Section:AddSubtab(Name)
+                local tabIndex = #Section._subtabs + 1
+                local isFirst = tabIndex == 1
+
+                -- Separator " | " before every tab except the first
+                if not isFirst then
+                    Library:Create("TextLabel", {
+                        Name = "\0",
+                        Parent = Items["SubtabHolder"].Instance,
+                        FontFace = Library.Font,
+                        TextSize = Library.FontSize,
+                        Text = " | ",
+                        TextColor3 = Library.Theme["Inactive Text"],
+                        BackgroundTransparency = 1,
+                        BorderSizePixel = 0,
+                        AutomaticSize = Enum.AutomaticSize.XY,
+                        TextYAlignment = Enum.TextYAlignment.Center,
+                    }):AddToTheme({TextColor3 = "Inactive Text"})
+                end
+
+                -- Tab button label
+                local TabBtn = Library:Create("TextButton", {
+                    Name = "\0",
+                    Parent = Items["SubtabHolder"].Instance,
+                    FontFace = Library.Font,
+                    TextSize = Library.FontSize,
+                    Text = Name,
+                    TextColor3 = isFirst and Library.Theme["Accent"] or Library.Theme["Inactive Text"],
+                    BackgroundTransparency = 1,
+                    BorderSizePixel = 0,
+                    AutomaticSize = Enum.AutomaticSize.XY,
+                    AutoButtonColor = false,
+                    TextYAlignment = Enum.TextYAlignment.Center,
+                })
+                if isFirst then
+                    TabBtn:AddToTheme({TextColor3 = "Accent"})
+                else
+                    TabBtn:AddToTheme({TextColor3 = "Inactive Text"})
+                end
+
+                -- Content frame for this subtab
+                local SubFrame = Library:Create("Frame", {
+                    Name = "\0",
+                    Parent = Items["Content"].Instance,
+                    BackgroundTransparency = 1,
+                    Size = UDim2.new(1, 0, 0, 0),
+                    BorderSizePixel = 0,
+                    AutomaticSize = Enum.AutomaticSize.Y,
+                    Visible = isFirst,
+                })
+
+                Library:Create("UIListLayout", {
+                    Name = "\0",
+                    Parent = SubFrame.Instance,
+                    Padding = UDim.new(0, 8),
+                    SortOrder = Enum.SortOrder.LayoutOrder
+                })
+
+                -- Proxy object that mimics Section API so elements can be added to it
+                local proxy = setmetatable({
+                    Items = { Content = SubFrame },
+                    Window = Section.Window,
+                    Page = Section.Page,
+                    Section = Section,
+                }, getmetatable(Section))
+
+                local tabData = { Name = Name, Btn = TabBtn, Frame = SubFrame, Proxy = proxy }
+                table.insert(Section._subtabs, tabData)
+                table.insert(Section._subtabFrames, SubFrame)
+
+                if isFirst then
+                    Section._activeSubtab = tabData
+                    -- Hide the original section name label, show subtab bar instead
+                    Items["Text"].Instance.Visible = false
+                    Items["SubtabHolder"].Instance.Visible = true
+                end
+
+                TabBtn:Connect("MouseButton1Down", function()
+                    if Section._activeSubtab == tabData then return end
+                    -- Deactivate old
+                    if Section._activeSubtab then
+                        Section._activeSubtab.Frame.Instance.Visible = false
+                        Section._activeSubtab.Btn:ChangeItemTheme({TextColor3 = "Inactive Text"})
+                        Section._activeSubtab.Btn.Instance.TextColor3 = Library.Theme["Inactive Text"]
+                    end
+                    -- Activate new
+                    tabData.Frame.Instance.Visible = true
+                    TabBtn:ChangeItemTheme({TextColor3 = "Accent"})
+                    TabBtn.Instance.TextColor3 = Library.Theme["Accent"]
+                    Section._activeSubtab = tabData
+                end)
+
+                return proxy
             end
 
             return setmetatable(Section, Library)
