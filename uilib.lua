@@ -2879,9 +2879,10 @@ local Library = {
                     Name = "\0",
                     Parent = Items["Section"].Instance,
                     BackgroundTransparency = 1,
-                    Position = UDim2.new(0, 8, 0, -2),
-                    Size = UDim2.new(1, -16, 0, 16),
+                    Position = UDim2.new(0, 6, 0, -6),
+                    Size = UDim2.new(1, -12, 0, 14),
                     BorderSizePixel = 0,
+                    ClipsDescendants = false,
                 })
 
                 Items["Text"] = Library:Create("TextLabel", {
@@ -2893,18 +2894,19 @@ local Library = {
                     Parent = Items["Header"].Instance,
                     TextColor3 = Library.Theme["Text"],
                     Text = Section.Name,
-                    Size = UDim2.new(0, 0, 1, 0),
-                    Position = UDim2.new(0, 4, 0, 0),
+                    Size = UDim2.new(1, 0, 1, 0),
+                    Position = UDim2.new(0, 0, 0, 0),
                     BorderSizePixel = 0,
                     AutomaticSize = Enum.AutomaticSize.X,
                     BackgroundTransparency = 1,
+                    ClipsDescendants = false,
                 }):AddToTheme({TextColor3 = 'Text'})
                 
                 Library:Create("UIPadding", {
                     Name = "\0",
                     Parent = Items["Text"].Instance,
-                    PaddingRight = UDim.new(0, 4),
-                    PaddingLeft = UDim.new(0, 4)
+                    PaddingRight = UDim.new(0, 3),
+                    PaddingLeft = UDim.new(0, 3)
                 })
 
                 Items["Content"] = Library:Create("Frame", {
