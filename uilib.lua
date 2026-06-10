@@ -445,7 +445,8 @@ local Library = {
             NewX = math.clamp(NewX, 0, ScreenSize.X - GuiSize.X)
             NewY = math.clamp(NewY, 0, ScreenSize.Y - GuiSize.Y)
     
-            Self:Tween({Position = UDim2.new(0, NewX, 0, NewY)}, TweenInfo.new(0.65, Enum.EasingStyle.Exponential, Enum.EasingDirection.Out))
+            -- Direct set for smooth drag (no tween lag)
+            Gui.Position = UDim2.new(0, NewX, 0, NewY)
         end
     
         local InputChanged
@@ -513,6 +514,7 @@ local Library = {
             return Button
         end
 
+        -- Only Left and Right edges (X-axis resizing only)
         local Edges = {
             {Button = MakeEdge(
                 "Left", 
@@ -526,26 +528,6 @@ local Library = {
                 UDim2.new(1, -EdgeThickness, 0, 0), 
                 UDim2.new(0, EdgeThickness, 1, 0)), 
                 Side = "R"
-            },
-
-            {Button = MakeEdge(
-                "Top", UDim2.new(0, 0, 0, 0), 
-                UDim2.new(1, 0, 0, EdgeThickness)), 
-                Side = "T"
-            },
-
-            {Button = MakeEdge(
-                "Bottom", 
-                UDim2.new(0, 0, 1, -EdgeThickness), 
-                UDim2.new(1, 0, 0, EdgeThickness)), 
-                Side = "B"
-            },
-
-            {Button = MakeEdge(
-                "BottomRight",
-                UDim2.new(1, -EdgeThickness, 1, -EdgeThickness),
-                UDim2.new(0, EdgeThickness, 0, EdgeThickness)),
-                Side = "BR"
             },
         }
 
@@ -588,15 +570,18 @@ local Library = {
             end
         end)
 
-        Library:Connect(RunService.RenderStepped, function()
+        -- Use InputChanged instead of RenderStepped for better FPS
+        Library:Connect(UserInputService.InputChanged, function(Input)
             if not Resizing or not CurrentSide then 
                 return 
+            end
+            if Input.UserInputType ~= Enum.UserInputType.MouseMovement and Input.UserInputType ~= Enum.UserInputType.Touch then
+                return
             end
 
             local MouseLocation = UserInputService:GetMouseLocation()
             local dx = MouseLocation.X - StartMouse.X
-            local dy = MouseLocation.Y - StartMouse.Y
-        
+
             local x, y = StartPosition.X, StartPosition.Y
             local w, h = StartSize.X, StartSize.Y
 
@@ -605,14 +590,6 @@ local Library = {
                 w = StartSize.X - dx
             elseif CurrentSide == "R" then
                 w = StartSize.X + dx
-            elseif CurrentSide == "T" then
-                y = StartPosition.Y + dy
-                h = StartSize.Y - dy
-            elseif CurrentSide == "B" then
-                h = StartSize.Y + dy
-            elseif CurrentSide == "BR" then
-                w = StartSize.X + dx
-                h = StartSize.Y + dy
             end
         
             if w < Minimum.X then
@@ -621,15 +598,10 @@ local Library = {
                 end
                 w = Minimum.X
             end
-            if h < Minimum.Y then
-                if CurrentSide == "T" then
-                    y = y - (Minimum.Y - h)
-                end
-                h = Minimum.Y
-            end
         
-            Self:Tween({Position = UDim2.fromOffset(x, y)}, TweenInfo.new(0.65, Enum.EasingStyle.Exponential, Enum.EasingDirection.Out))
-            Self:Tween({Size = UDim2.fromOffset(w, h)}, TweenInfo.new(0.65, Enum.EasingStyle.Exponential, Enum.EasingDirection.Out))
+            -- Direct set (no tween) for smooth drag without lag
+            Gui.Position = UDim2.fromOffset(x, y)
+            Gui.Size = UDim2.fromOffset(w, h)
         end)
     end
 
@@ -2201,7 +2173,10 @@ local Library = {
             Library.KeyList = KeybindList
             Self.KeybindList = KeybindList
         
+            local _userHidden = false
+
             function KeybindList:SetVisibility(Bool)
+                _userHidden = not Bool
                 Items["KeybindList"].Instance.Visible = Bool
             end
         
@@ -2239,7 +2214,7 @@ local Library = {
                     end
                 end
         
-                if #ActiveKeys == 0 then 
+                if #ActiveKeys == 0 or _userHidden then 
                     Items["KeybindList"].Instance.Visible = false
                 else
                     Items["KeybindList"].Instance.Visible = true
@@ -2523,7 +2498,7 @@ local Library = {
                 }):AddToTheme({BackgroundColor3 = 'Border'})
 
                 Items["Outline"]:MakeDraggable()
-                Items["Outline"]:MakeResizeable(Vector2.new(400, Items["Outline"].Instance.AbsoluteSize.Y))
+                Items["Outline"]:MakeResizeable(Vector2.new(400, 0))
                 
                 Items["Outline2"] = Library:Create("Frame", {
                     Name = "\0",
@@ -2932,21 +2907,6 @@ local Library = {
                     PaddingLeft = UDim.new(0, 4)
                 })
 
-                 Items["CollapseBtn"] = Library:Create("TextButton", {
-                    Name = "\0",
-                    Parent = Items["Header"].Instance,
-                    Size = UDim2.new(0, 24, 0, 24),
-                    Position = UDim2.new(1, -4, 0.5, 0),
-                    AnchorPoint = Vector2.new(1, 0.5),
-                    BackgroundTransparency = 1,
-                    BorderSizePixel = 0,
-                    Font = Enum.Font.GothamBold,
-                    TextSize = 18,
-                    TextColor3 = Library.Theme["Inactive Text"],
-                    Text = "▲",
-                    ZIndex = 5,
-                }):AddToTheme({TextColor3 = 'Inactive Text'})
-                
                 Items["Content"] = Library:Create("Frame", {
                     Name = "\0",
                     Parent = Items["Section"].Instance,
@@ -2954,7 +2914,7 @@ local Library = {
                     Position = UDim2.new(0, 8, 0, 10),
                     Size = UDim2.new(1, -16, 0, 0),
                     BorderSizePixel = 0,
-                    ClipsDescendants = true,
+                    ClipsDescendants = false,
                     AutomaticSize = Enum.AutomaticSize.Y
                 })
                 
@@ -2969,82 +2929,7 @@ local Library = {
                     Name = "\0",
                     Parent = Items["Section"].Instance,
                     PaddingBottom = UDim.new(0, 8)
-                })                
-
-                local _collapsed = false
-                local _animating = false
-                local function toggleSectionCollapse()
-                    if _animating then return end
-                    _collapsed = not _collapsed
-                    _animating = true
-                    Items["CollapseBtn"].Instance.Text = _collapsed and "▼" or "▲"
-                    local pad = Items["Section"].Instance:FindFirstChildWhichIsA("UIPadding")
-                    
-                    if _collapsed then
-                        Items["Content"].Instance.AutomaticSize = Enum.AutomaticSize.None
-                        local tween = Items["Content"]:Tween({
-                            Size = UDim2.new(1, -16, 0, 0)
-                        }, TweenInfo.new(0.35, Enum.EasingStyle.Quart, Enum.EasingDirection.Out))
-                        if pad then
-                            Library:Tween({PaddingBottom = UDim.new(0, 2)}, TweenInfo.new(0.35, Enum.EasingStyle.Quart, Enum.EasingDirection.Out), pad)
-                        end
-                        if tween then
-                            tween.Completed:Once(function()
-                                Items["Content"].Instance.Visible = false
-                                _animating = false
-                            end)
-                        else
-                            Items["Content"].Instance.Visible = false
-                            _animating = false
-                        end
-                    else
-                        Items["Content"].Instance.Visible = true
-                        Items["Content"].Instance.Size = UDim2.new(1, -16, 0, 0)
-                        Items["Content"].Instance.AutomaticSize = Enum.AutomaticSize.Y
-                        RunService.Heartbeat:Wait()
-                        local targetHeight = Items["Content"].Instance.AbsoluteSize.Y
-                        Items["Content"].Instance.AutomaticSize = Enum.AutomaticSize.None
-                        Items["Content"].Instance.Size = UDim2.new(1, -16, 0, 0)
-                        local tween = Items["Content"]:Tween({
-                            Size = UDim2.new(1, -16, 0, targetHeight)
-                        }, TweenInfo.new(0.35, Enum.EasingStyle.Quart, Enum.EasingDirection.Out))
-                        if pad then
-                            Library:Tween({PaddingBottom = UDim.new(0, 8)}, TweenInfo.new(0.35, Enum.EasingStyle.Quart, Enum.EasingDirection.Out), pad)
-                        end
-                        if tween then
-                            tween.Completed:Once(function()
-                                Items["Content"].Instance.AutomaticSize = Enum.AutomaticSize.Y
-                                _animating = false
-                            end)
-                        else
-                            Items["Content"].Instance.AutomaticSize = Enum.AutomaticSize.Y
-                            _animating = false
-                        end
-                    end
-                end
-                Items["CollapseBtn"].Instance.MouseButton1Click:Connect(toggleSectionCollapse)
-
-                -- Section tracking for collapse buttons
-                Section.Page.Sections = Section.Page.Sections or {}
-                
-                -- Filter out any sections that have been destroyed
-                local activeSections = {}
-                for _, sec in ipairs(Section.Page.Sections) do
-                    if sec.Items["Section"] and sec.Items["Section"].Instance and sec.Items["Section"].Instance.Parent then
-                        table.insert(activeSections, sec)
-                    end
-                end
-                table.insert(activeSections, Section)
-                Section.Page.Sections = activeSections
-                
-                local isSettingsPage = string.lower(Section.Page.Name) == "settings"
-                local shouldShowCollapse = not isSettingsPage and #Section.Page.Sections > 2
-                
-                for _, sec in ipairs(Section.Page.Sections) do
-                    if sec.Items["CollapseBtn"] then
-                        sec.Items["CollapseBtn"].Instance.Visible = shouldShowCollapse
-                    end
-                end
+                })
 
                 Section.Items = Items
             end 
