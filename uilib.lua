@@ -2514,7 +2514,7 @@ local Library = {
                     Parent = Library.Holder.Instance,
                     AnchorPoint = Vector2.new(0.5, 0.5),
                     Position = UDim2.new(0.5, 0, 0.5, 0),
-                    Size = UDim2.new(0, 750, 0, 550),
+                    Size = UDim2.new(0, 620, 0, 430),
                     BorderSizePixel = 0,
                     BackgroundColor3 = Library.Theme["Border"]
                 }):AddToTheme({BackgroundColor3 = 'Border'})
@@ -2717,11 +2717,6 @@ local Library = {
                     AutomaticSize = Enum.AutomaticSize.X
                 }):AddToTheme({TextColor3 = 'Inactive Text', BackgroundColor3 = 'Inline'})
 
-                Library:Create("UICorner", {
-                    Name = "\0",
-                    Parent = Items["Inactive"].Instance,
-                    CornerRadius = UDim.new(0, 4)
-                })
 
                 Library:Create("UIPadding", {
                     Name = "\0",
@@ -2884,6 +2879,234 @@ local Library = {
 
             table.insert(Page.Window.Pages, Page)
             return setmetatable(Page, Library)
+        end
+
+        Library.SubTab = function(Self, Params)
+            Params = Params or {}
+
+            local PageItems = Self.Items
+
+            -- First call: create the sub-tab bar and relocate original columns
+            if not Self._subTabBar then
+                PageItems["LeftColumn"].Instance.Parent = Library.UnusedHolder.Instance
+                PageItems["RightColumn"].Instance.Parent = Library.UnusedHolder.Instance
+
+                -- Wrapper fills the Page frame via its existing UIListLayout
+                local wrapper = Library:Create("Frame", {
+                    Name = "\0",
+                    Parent = PageItems["Page"].Instance,
+                    BackgroundTransparency = 1,
+                    BorderSizePixel = 0,
+                    Size = UDim2.new(1, 0, 1, 0)
+                })
+                Self._subTabWrapper = wrapper
+
+                -- Sub-tab button bar (top 26px of wrapper)
+                local bar = Library:Create("Frame", {
+                    Name = "\0",
+                    Parent = wrapper.Instance,
+                    Position = UDim2.new(0, 0, 0, 0),
+                    Size = UDim2.new(1, 0, 0, 26),
+                    BackgroundColor3 = Library.Theme["Background"],
+                    BorderSizePixel = 0
+                }):AddToTheme({BackgroundColor3 = "Background"})
+
+                Library:Create("Frame", {
+                    Name = "\0",
+                    Parent = bar.Instance,
+                    Position = UDim2.new(0, 0, 1, -1),
+                    Size = UDim2.new(1, 0, 0, 1),
+                    BackgroundColor3 = Library.Theme["Outline"],
+                    BorderSizePixel = 0,
+                    ZIndex = 2
+                }):AddToTheme({BackgroundColor3 = "Outline"})
+
+                Library:Create("UIListLayout", {
+                    Name = "\0",
+                    Parent = bar.Instance,
+                    FillDirection = Enum.FillDirection.Horizontal,
+                    VerticalAlignment = Enum.VerticalAlignment.Center,
+                    Padding = UDim.new(0, 3),
+                    SortOrder = Enum.SortOrder.LayoutOrder
+                })
+
+                Library:Create("UIPadding", {
+                    Name = "\0",
+                    Parent = bar.Instance,
+                    PaddingLeft = UDim.new(0, 8),
+                    PaddingRight = UDim.new(0, 8)
+                })
+
+                Self._subTabBar = bar
+                Self._subTabActive = nil
+            end
+
+            local SubTab = {
+                Name = Params.Name or "SubTab",
+                Page = Self,
+                Window = Self.Window,
+                Items = {},
+                ColumnsData = {}
+            }
+
+            -- Button in the subtab bar
+            local btn = Library:Create("TextButton", {
+                Name = "\0",
+                Parent = Self._subTabBar.Instance,
+                FontFace = Library.Font,
+                TextSize = Library.FontSize,
+                TextXAlignment = Enum.TextXAlignment.Center,
+                Text = SubTab.Name,
+                TextColor3 = Library.Theme["Inactive Text"],
+                AutoButtonColor = false,
+                Size = UDim2.new(0, 0, 1, -4),
+                BackgroundColor3 = Library.Theme["Inline"],
+                BackgroundTransparency = 0,
+                BorderSizePixel = 0,
+                AutomaticSize = Enum.AutomaticSize.X
+            }):AddToTheme({TextColor3 = "Inactive Text", BackgroundColor3 = "Inline"})
+
+            Library:Create("UIPadding", {
+                Name = "\0",
+                Parent = btn.Instance,
+                PaddingLeft = UDim.new(0, 7),
+                PaddingRight = UDim.new(0, 7)
+            })
+
+            local activeBar = Library:Create("Frame", {
+                Name = "\0",
+                Parent = btn.Instance,
+                AnchorPoint = Vector2.new(0.5, 1),
+                Position = UDim2.new(0.5, 0, 1, 2),
+                Size = UDim2.new(1, 0, 0, 2),
+                BorderSizePixel = 0,
+                BackgroundTransparency = 1,
+                BackgroundColor3 = Library.Theme["Accent"]
+            }):AddToTheme({BackgroundColor3 = "Accent"})
+
+            -- Content wrapper for this subtab (below the bar)
+            local contentWrap = Library:Create("Frame", {
+                Name = "\0",
+                Parent = Self._subTabWrapper.Instance,
+                BackgroundTransparency = 1,
+                Position = UDim2.new(0, 0, 0, 26),
+                Size = UDim2.new(1, 0, 1, -26),
+                BorderSizePixel = 0,
+                Visible = false
+            })
+
+            Library:Create("UIListLayout", {
+                Name = "\0",
+                Parent = contentWrap.Instance,
+                FillDirection = Enum.FillDirection.Horizontal,
+                HorizontalFlex = Enum.UIFlexAlignment.Fill,
+                Padding = UDim.new(0, 11),
+                SortOrder = Enum.SortOrder.LayoutOrder,
+                VerticalFlex = Enum.UIFlexAlignment.Fill
+            })
+
+            local leftCol = Library:Create("ScrollingFrame", {
+                Name = "\0",
+                Parent = contentWrap.Instance,
+                ScrollBarImageColor3 = Color3.fromRGB(0, 0, 0),
+                Active = true,
+                AutomaticCanvasSize = Enum.AutomaticSize.Y,
+                ScrollBarThickness = 0,
+                BackgroundTransparency = 1,
+                Size = UDim2.new(0, 100, 0, 100),
+                BorderSizePixel = 0,
+                CanvasSize = UDim2.new(0, 0, 0, 0)
+            })
+
+            Library:Create("UIListLayout", {
+                Name = "\0",
+                Parent = leftCol.Instance,
+                Padding = UDim.new(0, 15),
+                SortOrder = Enum.SortOrder.LayoutOrder
+            })
+
+            Library:Create("UIPadding", {
+                Name = "\0",
+                Parent = leftCol.Instance,
+                PaddingTop = UDim.new(0, 19),
+                PaddingBottom = UDim.new(0, 15),
+                PaddingRight = UDim.new(0, 2),
+                PaddingLeft = UDim.new(0, 10)
+            })
+
+            local rightCol = Library:Create("ScrollingFrame", {
+                Name = "\0",
+                Parent = contentWrap.Instance,
+                ScrollBarImageColor3 = Color3.fromRGB(0, 0, 0),
+                Active = true,
+                AutomaticCanvasSize = Enum.AutomaticSize.Y,
+                ScrollBarThickness = 0,
+                BackgroundTransparency = 1,
+                Size = UDim2.new(0, 100, 0, 100),
+                BorderSizePixel = 0,
+                CanvasSize = UDim2.new(0, 0, 0, 0)
+            })
+
+            Library:Create("UIListLayout", {
+                Name = "\0",
+                Parent = rightCol.Instance,
+                Padding = UDim.new(0, 15),
+                SortOrder = Enum.SortOrder.LayoutOrder
+            })
+
+            Library:Create("UIPadding", {
+                Name = "\0",
+                Parent = rightCol.Instance,
+                PaddingTop = UDim.new(0, 19),
+                PaddingBottom = UDim.new(0, 15),
+                PaddingRight = UDim.new(0, 10),
+                PaddingLeft = UDim.new(0, 2)
+            })
+
+            SubTab.ColumnsData[1] = leftCol
+            SubTab.ColumnsData[2] = rightCol
+            SubTab.Items["Content"] = contentWrap
+            SubTab.Items["Button"] = btn
+            SubTab.Items["ActiveBar"] = activeBar
+
+            function SubTab:Turn()
+                local OldTab = Self._subTabActive
+                if OldTab == SubTab then return end
+
+                if OldTab then
+                    OldTab.Items["Content"].Instance.Visible = false
+                    OldTab.Items["Button"]:ChangeItemTheme({TextColor3 = "Inactive Text", BackgroundColor3 = "Inline"})
+                    OldTab.Items["Button"].Instance.TextColor3 = Library.Theme["Inactive Text"]
+                    OldTab.Items["Button"].Instance.BackgroundColor3 = Library.Theme["Inline"]
+                    OldTab.Items["ActiveBar"].Instance.BackgroundTransparency = 1
+                end
+
+                contentWrap.Instance.Visible = true
+                btn:ChangeItemTheme({TextColor3 = "Accent", BackgroundColor3 = "Element"})
+                btn.Instance.TextColor3 = Library.Theme["Accent"]
+                btn.Instance.BackgroundColor3 = Library.Theme["Element"]
+                activeBar.Instance.BackgroundTransparency = 0
+
+                Self._subTabActive = SubTab
+            end
+
+            btn:Connect("MouseButton1Down", function()
+                SubTab:Turn()
+            end)
+
+            btn:OnHover(function()
+                if Self._subTabActive == SubTab then return end
+                btn:Tween({TextColor3 = Library.Theme.Text, BackgroundColor3 = Library.Theme["Element 2"]})
+            end, function()
+                if Self._subTabActive == SubTab then return end
+                btn:Tween({TextColor3 = Library.Theme["Inactive Text"], BackgroundColor3 = Library.Theme["Inline"]})
+            end)
+
+            if not Self._subTabActive then
+                SubTab:Turn()
+            end
+
+            return setmetatable(SubTab, Library)
         end
 
         Library.Section = function(Self, Params)
@@ -4643,7 +4866,7 @@ local Library = {
         end
 
         Library.Init = function(Self)
-            local SettingsPage = Self:Page({Name = "settings", Icon = "rbxassetid://3926307971"}) do 
+            local SettingsPage = Self:Page({Name = "settings"}) do 
                 local ThemingSection = SettingsPage:Section({Name = "Theming", Side = 2}) do
                     for Index, Value in Library.Theme do 
                         ThemingSection:Label({Name = Index}):Colorpicker({
