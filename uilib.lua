@@ -2122,7 +2122,8 @@ local Library = {
         Library.KeybindList = function(Self)
             local KeybindList = {
                 Items = {},
-                Keys = {}
+                Keys = {},
+                _userVisible = true
             }
         
             local Items = {} do
@@ -2134,6 +2135,7 @@ local Library = {
                     Size = UDim2.new(0, 34, 0, 53), 
                     ClipsDescendants = true, 
                     BorderSizePixel = 0, 
+                    Visible = false,
                     BackgroundColor3 = Library.Theme["Background"]
                 }):AddToTheme({BackgroundColor3 = "Background"})
 
@@ -2192,7 +2194,12 @@ local Library = {
             Self.KeybindList = KeybindList
         
             function KeybindList:SetVisibility(Bool)
-                Items["KeybindList"].Instance.Visible = Bool
+                KeybindList._userVisible = Bool
+                if not Bool then
+                    Items["KeybindList"].Instance.Visible = false
+                else
+                    KeybindList:UpdateSize()
+                end
             end
         
             function KeybindList:UpdateSize()
@@ -2229,7 +2236,7 @@ local Library = {
                     end
                 end
         
-                if #ActiveKeys == 0 then 
+                if #ActiveKeys == 0 or not KeybindList._userVisible then 
                     Items["KeybindList"].Instance.Visible = false
                 else
                     Items["KeybindList"].Instance.Visible = true
@@ -2684,6 +2691,7 @@ local Library = {
 
             local Page = {
                 Name = Params.Name or Params.name or "Page",
+                Icon = Params.Icon or Params.icon or nil,
 
                 Window = Self,
                 ColumnsData = { },
@@ -2697,16 +2705,30 @@ local Library = {
                     Name = "\0",
                     FontFace = Library.Font,
                     TextSize = Library.FontSize,
-                    TextXAlignment = Enum.TextXAlignment.Left,
+                    TextXAlignment = Enum.TextXAlignment.Center,
                     Parent = Page.Window.Items["Pages"].Instance,
                     TextColor3 = Library.Theme["Inactive Text"],
-                    Text = Page.Name,
+                    Text = Page.Icon and "" or Page.Name,
                     AutoButtonColor = false,
-                    Size = UDim2.new(0, 0, 0, 20),
+                    Size = Page.Icon and UDim2.new(0, 24, 0, 20) or UDim2.new(0, 0, 0, 20),
                     BackgroundTransparency = 1,
                     BorderSizePixel = 0,
-                    AutomaticSize = Enum.AutomaticSize.X
-                }):AddToTheme({TextColor3 = 'Inactive Text'})         
+                    AutomaticSize = Page.Icon and Enum.AutomaticSize.None or Enum.AutomaticSize.X
+                }):AddToTheme({TextColor3 = 'Inactive Text'})
+
+                if Page.Icon then
+                    Items["IconImage"] = Library:Create("ImageLabel", {
+                        Name = "\0",
+                        Parent = Items["Inactive"].Instance,
+                        Image = Page.Icon,
+                        ImageColor3 = Library.Theme["Inactive Text"],
+                        BackgroundTransparency = 1,
+                        AnchorPoint = Vector2.new(0.5, 0.5),
+                        Position = UDim2.new(0.5, 0, 0.5, 0),
+                        Size = UDim2.new(0, 14, 0, 14),
+                        BorderSizePixel = 0
+                    }):AddToTheme({ImageColor3 = 'Inactive Text'})
+                end        
                 
                 Items["Page"] = Library:Create("Frame", {
                     Name = "\0",
@@ -2793,12 +2815,16 @@ local Library = {
 
             Items["Inactive"]:OnHover(function()
                 if Page.Active then return end 
-                
                 Items["Inactive"]:Tween({TextColor3 = Library.Theme.Text})
+                if Items["IconImage"] then
+                    Items["IconImage"]:Tween({ImageColor3 = Library.Theme.Text})
+                end
             end, function()
                 if Page.Active then return end 
-                
                 Items["Inactive"]:Tween({TextColor3 = Library.Theme["Inactive Text"]})
+                if Items["IconImage"] then
+                    Items["IconImage"]:Tween({ImageColor3 = Library.Theme["Inactive Text"]})
+                end
             end)
 
             function Page:Turn()
@@ -2822,6 +2848,10 @@ local Library = {
                     Old.Items["Page"].Instance.Position = UDim2.new(0, 0, 0, 0)
                     Old.Items["Inactive"]:ChangeItemTheme({TextColor3 = "Inactive Text"})
                     Old.Items["Inactive"].Instance.TextColor3 = Library.Theme["Inactive Text"]
+                    if Old.Items["IconImage"] then
+                        Old.Items["IconImage"]:ChangeItemTheme({ImageColor3 = "Inactive Text"})
+                        Old.Items["IconImage"].Instance.ImageColor3 = Library.Theme["Inactive Text"]
+                    end
                     Old.Items["Page"].Instance.Visible = false
                     Old.Items["Page"].Instance.Parent = Library.UnusedHolder.Instance
                     Old.Active = false
@@ -2833,6 +2863,10 @@ local Library = {
 
                 Items["Inactive"]:ChangeItemTheme({TextColor3 = "Accent"})
                 Items["Inactive"].Instance.TextColor3 = Library.Theme["Accent"]
+                if Items["IconImage"] then
+                    Items["IconImage"]:ChangeItemTheme({ImageColor3 = "Accent"})
+                    Items["IconImage"].Instance.ImageColor3 = Library.Theme["Accent"]
+                end
 
                 Page.Window.Current = Page
                 Page.Active = true
@@ -4608,7 +4642,7 @@ local Library = {
         end
 
         Library.Init = function(Self)
-            local SettingsPage = Self:Page({Name = "settings"}) do 
+            local SettingsPage = Self:Page({Name = "settings", Icon = "rbxassetid://3926307971"}) do 
                 local ThemingSection = SettingsPage:Section({Name = "Theming", Side = 2}) do
                     for Index, Value in Library.Theme do 
                         ThemingSection:Label({Name = Index}):Colorpicker({
